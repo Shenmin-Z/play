@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "axios": "^0.19.2",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1"
+  },
+  "devDependencies": {
+    "@types/react": "^16.9.46",
+    "@types/react-dom": "^16.9.8",
+    "esbuild": "^0.6.26"
+  },
+  "scripts": {
+    "build": "yarn esbuild index.tsx --bundle '--define:process.env.NODE_ENV=\"development\"' --outfile=./public/build.js",
+    "build:prd": "yarn esbuild index.tsx --bundle '--define:process.env.NODE_ENV=\"production\"' --minify --outfile=./public/build.js"
+  }
+}
