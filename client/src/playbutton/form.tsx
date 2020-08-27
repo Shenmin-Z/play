@@ -8,24 +8,32 @@ type Props = {
 };
 
 let Form: FC<Props> = ({ radius, setRadius, label, setLabel }) => {
+  let [localRadius, setLocalRadius] = useState(radius + "");
+  let [error, setError] = useState(false);
+
   return (
     <div>
       <label style={formLabelStyle}>Size of Play Button (%)</label>
       <input
-        style={formInputStyle}
+        style={formInputStyle(error)}
         type="text"
-        value={radius}
+        value={localRadius}
         onChange={e => {
-          let value = parseInt(e.target.value);
-          if (value !== NaN) {
-            setRadius(value);
+          let value = e.target.value;
+          setLocalRadius(value);
+          let valid = /^[1-9][0-9]?$|^100$/.test(value);
+          if (valid) {
+            setRadius(parseInt(value));
+            setError(false);
+          } else {
+            setError(true);
           }
         }}
       />
       <label style={formLabelStyle}>Label</label>
       <input
-        placeholder="12:01"
-        style={formInputStyle}
+        placeholder="e.g. 12:01"
+        style={formInputStyle(false)}
         type="text"
         value={label}
         onChange={e => {
@@ -37,7 +45,7 @@ let Form: FC<Props> = ({ radius, setRadius, label, setLabel }) => {
 };
 
 export let useForm = () => {
-  let [radius, setRadius] = useState<number>(25);
+  let [radius, setRadius] = useState<number>(50);
   let [label, setLabel] = useState<string>("");
 
   let form = (
@@ -59,14 +67,14 @@ let formLabelStyle: CSSProperties = {
   fontWeight: 700
 };
 
-let formInputStyle: CSSProperties = {
+let formInputStyle: (e: boolean) => CSSProperties = e => ({
   width: "100%",
   boxSizing: "border-box",
-  border: "1px solid rgb(226, 232, 240)",
+  border: `1px solid ${e ? "var(--light-pink)" : "rgb(226, 232, 240)"}`,
   borderRadius: ".5rem",
   marginBottom: "0.5rem",
   color: "rgb(74,85,104)",
   padding: ".5rem .75rem",
   lineHeight: 1.25,
   outline: "none"
-};
+});

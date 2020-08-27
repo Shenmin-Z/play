@@ -6,7 +6,8 @@ export let App: FC = () => {
     <div
       style={{
         maxWidth: 480,
-        margin: "0 auto"
+        margin: "0 auto",
+        padding: 5
       }}
     >
       <PlayButton />

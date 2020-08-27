@@ -13,11 +13,12 @@ func Button(img image.Image, radius float64, label string) (image.Image, error) 
 	h := float64(height)
 	var r float64
 	//if less than 1, consider as percentage
-	if radius < 1 && radius > 0 {
+	if radius <= 1 && radius > 0 {
 		min := w
 		if h < min {
 			min = h
 		}
+		min = min / 2
 		r = radius * min
 	} else if radius >= 1 {
 		r = radius

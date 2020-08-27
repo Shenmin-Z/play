@@ -1,5 +1,5 @@
 import React, { FC, useState, useRef, useEffect, CSSProperties } from "react";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { useForm } from "./form";
 import { buildUrl } from "../util";
 
@@ -35,7 +35,8 @@ export let Upload: FC = () => {
       let { data } = res;
       setNewImg(data);
     } catch (e) {
-      console.error(e);
+      let error: AxiosError = e;
+      console.error(error?.response?.data);
     }
   };
 
@@ -55,19 +56,16 @@ export let Upload: FC = () => {
   return (
     <div>
       {form}
-      <div
-        style={{
-          cursor: "pointer",
-          border: "2px dashed #0087F7",
-          borderRadius: 5,
-          background: "white",
-          minHeight: 100,
-          height: 1 // browser bug :(
-        }}
-      >
+      <div style={uploadAreaStyle}>
         {imgFile ? (
           <div style={centerStyle}>
-            <img src={blobUrl} />
+            <img
+              src={blobUrl}
+              style={{
+                maxHeight: "100%",
+                maxWidth: "100%"
+              }}
+            />
             <div
               style={{ position: "absolute", right: 8, top: 8 }}
               onClick={() => {
@@ -108,18 +106,7 @@ export let Upload: FC = () => {
         />
       </div>
       <div style={{ textAlign: "center", marginTop: 20, marginBottom: 20 }}>
-        <span
-          style={{
-            cursor: "pointer",
-            backgroundColor: "#0078D7",
-            borderRadius: ".5rem",
-            fontSize: 18,
-            color: "var(--baby-powder)",
-            lineHeight: 1.25,
-            padding: ".5rem .75rem"
-          }}
-          onClick={callService}
-        >
+        <span style={submitStyle} onClick={callService}>
           Submit
         </span>
       </div>
@@ -133,6 +120,10 @@ export let Upload: FC = () => {
           <div style={centerStyle}>
             <img
               src={`data:image/jpeg;base64,${newImg}`}
+              style={{
+                maxHeight: "100%",
+                maxWidth: "100%"
+              }}
               alt="generated image"
             />
           </div>
@@ -149,4 +140,23 @@ let centerStyle: CSSProperties = {
   justifyContent: "center",
   alignItems: "center",
   position: "relative"
+};
+
+let submitStyle: CSSProperties = {
+  cursor: "pointer",
+  backgroundColor: "#0078D7",
+  borderRadius: ".5rem",
+  fontSize: 18,
+  color: "var(--baby-powder)",
+  lineHeight: 1.25,
+  padding: ".5rem .75rem"
+};
+
+let uploadAreaStyle: CSSProperties = {
+  cursor: "pointer",
+  border: "2px dashed #0087F7",
+  borderRadius: 5,
+  background: "white",
+  minHeight: 100,
+  height: 1 // browser bug :(
 };
