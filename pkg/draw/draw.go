@@ -49,7 +49,7 @@ func Button(img image.Image, radius float64, label string) (image.Image, error) 
 	dc.Fill()
 
 	if label != "" {
-		fontSize := h / 8
+		fontSize := h / 10
 		if err := dc.LoadFontFace("static/fonts/arial.ttf", fontSize); err != nil {
 			return nil, err
 		}

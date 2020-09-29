@@ -3,11 +3,8 @@ package webserver
 import (
 	"bytes"
 	"encoding/base64"
-	"errors"
 	"image"
 	"image/jpeg"
-	"image/png"
-	"io"
 	"log"
 	"net/http"
 	"strconv"
@@ -29,7 +26,7 @@ func generate() {
 		}
 		label := r.URL.Query().Get("label")
 
-		img, err := decodeImage(r.Body)
+		img, _, err := image.Decode(r.Body)
 		if err != nil {
 			http.Error(rw, "Failed To Decode Image", http.StatusBadRequest)
 			return
@@ -56,33 +53,4 @@ func generate() {
 			log.Println("Unable to write image.")
 		}
 	})
-}
-
-func decodeImage(r io.Reader) (image.Image, error) {
-	buff := make([]byte, 512)
-	var n int
-	var err error
-	if n, err = r.Read(buff); err != nil {
-		return nil, err
-	}
-
-	newReader := io.MultiReader(bytes.NewReader(buff[:n]), r)
-	switch http.DetectContentType(buff) {
-	case "image/png":
-		img, err := png.Decode(newReader)
-		if err != nil {
-			return nil, err
-		} else {
-			return img, nil
-		}
-	case "image/jpeg":
-		img, _, err := image.Decode(newReader)
-		if err != nil {
-			return nil, err
-		} else {
-			return img, nil
-		}
-	default:
-		return nil, errors.New("Unsupported image type.")
-	}
 }

@@ -1,26 +1,54 @@
-import React, { FC, useState, useRef, useEffect, CSSProperties } from "react";
+import React, { FC, useRef, CSSProperties, useReducer } from "react";
 import axios, { AxiosError } from "axios";
 import { useForm } from "./form";
-import { buildUrl } from "../util";
+
+type UploadState = {
+  imgFile: File;
+  newImg: string;
+  blobUrl: string;
+};
+
+type UploadAction = ["setImgFile", File] | ["setNewImg", string];
+
+type UploadReducer = {
+  (p: UploadState, c: UploadAction): UploadState;
+};
 
 export let Upload: FC = () => {
-  let [imgFile, setImgFile] = useState<File>(null);
-  let [newImg, setNewImg] = useState<string>(null);
-  let [blobUrl, setBlobUrl] = useState<string>(null);
+  let [uploadState, uploadDispatch] = useReducer<UploadReducer>(
+    (state, action) => {
+      let [type, payload] = action;
+      let newState = state;
+      switch (type) {
+        case "setImgFile":
+          newState = { ...state, imgFile: payload as File };
+          if (!payload) {
+            newState.newImg = null;
+            newState.blobUrl = null;
+          } else {
+            if (newState.blobUrl) {
+              URL.revokeObjectURL(newState.blobUrl);
+            }
+            newState.blobUrl = URL.createObjectURL(payload);
+          }
+          break;
+        case "setNewImg":
+          newState = { ...state, newImg: payload as string };
+          break;
+      }
+      return newState;
+    },
+    {
+      imgFile: null,
+      newImg: null,
+      blobUrl: null
+    }
+  );
+  let { imgFile, newImg, blobUrl } = uploadState;
+
   let inputRef = useRef<HTMLInputElement>();
 
-  let { form, label, radius } = useForm();
-  let [serviceUrl, setServiceUrl] = useState<string>(null);
-
-  useEffect(() => {
-    setServiceUrl(buildUrl("/api/image/playbutton", { label, radius }));
-  }, [label, radius]);
-
-  useEffect(() => {
-    if (!imgFile) {
-      setNewImg(null);
-    }
-  }, [imgFile]);
+  let { formElm, serviceUrl, error } = useForm();
 
   let callService = async () => {
     if (!imgFile) {
@@ -33,29 +61,16 @@ export let Upload: FC = () => {
         data: imgFile
       });
       let { data } = res;
-      setNewImg(data);
+      uploadDispatch(["setNewImg", data]);
     } catch (e) {
       let error: AxiosError = e;
       console.error(error?.response?.data);
     }
   };
 
-  useEffect(() => {
-    let blobUrl: string;
-    if (imgFile) {
-      let blobUrl = URL.createObjectURL(imgFile);
-      setBlobUrl(blobUrl);
-    }
-    return () => {
-      if (blobUrl) {
-        URL.revokeObjectURL(blobUrl);
-      }
-    };
-  }, [imgFile]);
-
   return (
     <div>
-      {form}
+      {formElm}
       <div style={uploadAreaStyle}>
         {imgFile ? (
           <div style={centerStyle}>
@@ -69,7 +84,7 @@ export let Upload: FC = () => {
             <div
               style={{ position: "absolute", right: 8, top: 8 }}
               onClick={() => {
-                setImgFile(null);
+                uploadDispatch(["setImgFile", null]);
               }}
             >
               ❌
@@ -98,18 +113,20 @@ export let Upload: FC = () => {
           onChange={() => {
             let files = inputRef.current.files;
             if (files.length === 1) {
-              setImgFile(files[0]);
+              uploadDispatch(["setImgFile", files[0]]);
             } else if (files.length === 0) {
-              setImgFile(null);
+              uploadDispatch(["setImgFile", null]);
             }
           }}
         />
       </div>
-      <div style={{ textAlign: "center", marginTop: 20, marginBottom: 20 }}>
-        <span style={submitStyle} onClick={callService}>
-          Submit
-        </span>
-      </div>
+      {blobUrl && !error && (
+        <div style={{ textAlign: "center", marginTop: 20, marginBottom: 20 }}>
+          <span style={submitStyle} onClick={callService}>
+            Submit
+          </span>
+        </div>
+      )}
       {newImg && (
         <div
           style={{

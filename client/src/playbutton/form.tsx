@@ -1,33 +1,23 @@
-import React, { FC, useState, CSSProperties } from "react";
+import React, { FC, useReducer, Dispatch, CSSProperties } from "react";
+import { buildUrl } from "../util";
 
-type Props = {
-  radius: number;
-  setRadius: (a: number) => void;
-  label: string;
-  setLabel: (a: string) => void;
+type FormProps = {
+  formState: FormState;
+  formDispatch: Dispatch<FormAction>;
 };
 
-let Form: FC<Props> = ({ radius, setRadius, label, setLabel }) => {
-  let [localRadius, setLocalRadius] = useState(radius + "");
-  let [error, setError] = useState(false);
-
+let Form: FC<FormProps> = ({ formState, formDispatch }) => {
   return (
     <div>
       <label style={formLabelStyle}>Size of Play Button (%)</label>
       <input
-        style={formInputStyle(error)}
+        placeholder="e.g. 50"
+        style={formInputStyle(formState.radiusErr)}
         type="text"
-        value={localRadius}
+        value={formState.radiusBuf}
         onChange={e => {
           let value = e.target.value;
-          setLocalRadius(value);
-          let valid = /^[1-9][0-9]?$|^100$/.test(value);
-          if (valid) {
-            setRadius(parseInt(value));
-            setError(false);
-          } else {
-            setError(true);
-          }
+          formDispatch(["setRadius", value]);
         }}
       />
       <label style={formLabelStyle}>Label</label>
@@ -35,28 +25,77 @@ let Form: FC<Props> = ({ radius, setRadius, label, setLabel }) => {
         placeholder="e.g. 12:01"
         style={formInputStyle(false)}
         type="text"
-        value={label}
+        value={formState.label}
         onChange={e => {
-          setLabel(e.target.value);
+          formDispatch(["setLabel", e.target.value]);
         }}
       />
     </div>
   );
 };
 
-export let useForm = () => {
-  let [radius, setRadius] = useState<number>(50);
-  let [label, setLabel] = useState<string>("");
+type FormState = {
+  label: string;
+  radius: number;
+  radiusBuf: string;
+  radiusErr: boolean;
+  serviceUrl?: string;
+  error: boolean;
+};
 
-  let form = (
-    <Form
-      radius={radius}
-      setRadius={setRadius}
-      label={label}
-      setLabel={setLabel}
-    />
+type FormAction = ["setRadius" | "setLabel", string];
+
+type FormReducer = {
+  (p: FormState, c: FormAction): FormState;
+};
+
+export let useForm = () => {
+  let [formState, formDispatch] = useReducer<FormReducer>(
+    (state, action) => {
+      let newState = state;
+      switch (action[0]) {
+        case "setRadius": {
+          let payload = action[1];
+          let valid = /^[1-9][0-9]?$|^100$/.test(payload);
+          let newRadius = parseInt(payload);
+          if (valid) {
+            newState = {
+              ...state,
+              radius: newRadius,
+              radiusBuf: payload,
+              radiusErr: false
+            };
+          } else {
+            newState = { ...state, radiusBuf: payload, radiusErr: true };
+          }
+          break;
+        }
+        case "setLabel":
+          newState = { ...state, label: action[1] };
+          break;
+      }
+      newState.serviceUrl = buildUrl("/api/image/playbutton", {
+        label: newState.label,
+        radius: newState.radius
+      });
+      newState.error = newState.radiusErr;
+      return newState;
+    },
+    {
+      label: "",
+      radiusBuf: "",
+      radiusErr: false,
+      radius: 50,
+      serviceUrl: buildUrl("/api/image/playbutton", {
+        radius: 50
+      }),
+      error: false
+    }
   );
-  return { form, radius, label };
+
+  let formElm = <Form formState={formState} formDispatch={formDispatch} />;
+
+  return { formElm, serviceUrl: formState.serviceUrl, error: formState.error };
 };
 
 let formLabelStyle: CSSProperties = {
@@ -70,7 +109,7 @@ let formLabelStyle: CSSProperties = {
 let formInputStyle: (e: boolean) => CSSProperties = e => ({
   width: "100%",
   boxSizing: "border-box",
-  border: `1px solid ${e ? "var(--light-pink)" : "rgb(226, 232, 240)"}`,
+  border: `${e ? "2" : "1"}px solid ${e ? "#FF5630" : "rgb(226, 232, 240)"}`,
   borderRadius: ".5rem",
   marginBottom: "0.5rem",
   color: "rgb(74,85,104)",

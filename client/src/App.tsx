@@ -1,16 +1,23 @@
 import React, { FC } from "react";
 import { PlayButton } from "./playbutton";
+import { Header } from "./header";
 
 export let App: FC = () => {
   return (
-    <div
-      style={{
-        maxWidth: 480,
-        margin: "0 auto",
-        padding: 5
-      }}
-    >
-      <PlayButton />
+    <div>
+      <Header />
+      <div
+        style={{
+          margin: "40px auto 0px auto",
+          padding: "0 20px",
+          display: "flex",
+          flexDirection: "column"
+        }}
+      >
+        <PlayButton />
+      </div>
     </div>
   );
 };
+
+App.displayName = "App Root";
