@@ -71,7 +71,7 @@ export let Upload: FC = () => {
   return (
     <div>
       {formElm}
-      <div style={uploadAreaStyle}>
+      <div style={uploadAreaStyle(!!imgFile)}>
         {imgFile ? (
           <div style={centerStyle}>
             <img
@@ -97,6 +97,21 @@ export let Upload: FC = () => {
               if (inputRef.current) {
                 inputRef.current.click();
               }
+            }}
+            onDrop={e => {
+              e.preventDefault();
+
+              if (e.dataTransfer.items) {
+                if (e.dataTransfer.items[0].kind === "file") {
+                  let file = e.dataTransfer.items[0].getAsFile();
+                  uploadDispatch(["setImgFile", file]);
+                }
+              } else {
+                uploadDispatch(["setImgFile", e.dataTransfer.files[0]]);
+              }
+            }}
+            onDragOver={e => {
+              e.preventDefault();
             }}
           >
             Click Or Drag&Drop To Upload
@@ -128,22 +143,15 @@ export let Upload: FC = () => {
         </div>
       )}
       {newImg && (
-        <div
-          style={{
-            minHeight: 100,
-            height: 1 // browser bug :(
-          }}
-        >
-          <div style={centerStyle}>
-            <img
-              src={`data:image/jpeg;base64,${newImg}`}
-              style={{
-                maxHeight: "100%",
-                maxWidth: "100%"
-              }}
-              alt="generated image"
-            />
-          </div>
+        <div style={centerStyle}>
+          <img
+            src={`data:image/jpeg;base64,${newImg}`}
+            style={{
+              maxHeight: "100%",
+              maxWidth: "100%"
+            }}
+            alt="generated image"
+          />
         </div>
       )}
     </div>
@@ -169,11 +177,11 @@ let submitStyle: CSSProperties = {
   padding: ".5rem .75rem"
 };
 
-let uploadAreaStyle: CSSProperties = {
+let uploadAreaStyle: (f: boolean) => CSSProperties = file => ({
   cursor: "pointer",
   border: "2px dashed #0087F7",
   borderRadius: 5,
   background: "white",
   minHeight: 100,
-  height: 1 // browser bug :(
-};
+  ...(file ? {} : { height: 1 }) // browser bug :(
+});

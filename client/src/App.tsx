@@ -1,8 +1,24 @@
 import React, { FC } from "react";
 import { PlayButton } from "./playbutton";
+import { Home } from "./home";
+import { About } from "./about";
 import { Header } from "./header";
+import { RouteProvider, useRouteContext } from "./context";
+import { Menu } from "./common";
 
 export let App: FC = () => {
+  return (
+    <RouteProvider>
+      <Content />
+    </RouteProvider>
+  );
+};
+
+App.displayName = "App Root";
+
+let Content: FC = () => {
+  let [r0, r1] = useRouteContext();
+
   return (
     <div>
       <Header />
@@ -14,10 +30,15 @@ export let App: FC = () => {
           flexDirection: "column"
         }}
       >
-        <PlayButton />
+        {r0 === "home" && <Home />}
+        {r0 === "about" && <About />}
+        {r0 === "tools" && (
+          <>
+            {r1 === "play-button" && <PlayButton />}
+            <Menu />
+          </>
+        )}
       </div>
     </div>
   );
 };
-
-App.displayName = "App Root";

@@ -3,16 +3,16 @@ import React, { FC } from "react";
 export let Header: FC = () => {
   let as = [
     {
-      content: "aaa",
-      href: "#"
+      content: "Home",
+      href: "#home"
     },
     {
-      content: "bbb",
-      href: "#"
+      content: "Tools",
+      href: "#play-button"
     },
     {
-      content: "ccc",
-      href: "#"
+      content: "About",
+      href: "#about"
     }
   ];
   return (
@@ -41,7 +41,7 @@ export let Header: FC = () => {
           {as.map(i => (
             <a
               key={i.content}
-              href="#"
+              href={i.href}
               style={{
                 display: "flex",
                 alignItems: "center",
