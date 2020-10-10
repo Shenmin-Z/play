@@ -1,5 +1,6 @@
 import React, { FC } from "react";
 import { PlayButton } from "./playbutton";
+import { RepeatPattern } from "./repeatpattern";
 import { Home } from "./home";
 import { About } from "./about";
 import { Header } from "./header";
@@ -35,6 +36,7 @@ let Content: FC = () => {
         {r0 === "tools" && (
           <>
             {r1 === "play-button" && <PlayButton />}
+            {r1 === "repeat-pattern" && <RepeatPattern />}
             <Menu />
           </>
         )}
