@@ -39,13 +39,13 @@ export let Tabs: FC<Props> = ({ content, addNew, removeElement }) => {
           return {
             ...prev,
             active: payload,
-            activeIdx: content.findIndex(i => i.id === payload)
+            activeIdx: moveNegOne(content.findIndex(i => i.id === payload))
           };
         case "setHoveredTab":
           return {
             ...prev,
             hoveredTab: payload,
-            hoveredTabIdx: content.findIndex(i => i.id === payload)
+            hoveredTabIdx: moveNegOne(content.findIndex(i => i.id === payload))
           };
         case "setHoveredIcon":
           return { ...prev, hoveredIcon: payload };
@@ -105,7 +105,7 @@ export let Tabs: FC<Props> = ({ content, addNew, removeElement }) => {
                 key={c.id}
                 style={{
                   position: "relative",
-                  zIndex: ATO(1000, 500, 100 - idx)
+                  zIndex: ATO(1000, 999, 998 - idx)
                 }}
               >
                 {idx - hoveredTabIdx !== 1 && (
@@ -167,6 +167,7 @@ export let Tabs: FC<Props> = ({ content, addNew, removeElement }) => {
                     }}
                     onClick={() => {
                       removeElement(c.id);
+                      dispatch(["setHoveredTab", null]);
                     }}
                   >
                     ╳
@@ -248,3 +249,5 @@ export let Tabs: FC<Props> = ({ content, addNew, removeElement }) => {
     </div>
   );
 };
+
+let moveNegOne = (x: number) => (x === -1 ? null : x);

@@ -1,12 +1,14 @@
 import React, { FC } from "react";
 import { Tabs, Image, getEmptyImage } from "./images";
+import { Preview } from "./preview";
 import { RepeatProvider, useRepeatContext } from "./rContext";
 
 export let RepeatPattern: FC = () => {
   return (
-    <div style={{ marginTop: 40 }}>
+    <div style={{ marginTop: 40, zIndex: 0 }}>
       <RepeatProvider>
         <ImageTabs />
+        <Preview />
       </RepeatProvider>
     </div>
   );

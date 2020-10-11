@@ -23,23 +23,25 @@ let Content: FC = () => {
   return (
     <div>
       <Header />
-      <div
-        style={{
-          margin: "40px auto 0px auto",
-          padding: "0 20px",
-          display: "flex",
-          flexDirection: "column"
-        }}
-      >
-        {r0 === "home" && <Home />}
-        {r0 === "about" && <About />}
-        {r0 === "tools" && (
-          <>
-            {r1 === "play-button" && <PlayButton />}
-            {r1 === "repeat-pattern" && <RepeatPattern />}
-            <Menu />
-          </>
-        )}
+      <div style={{ position: "relative", zIndex: 0 }}>
+        <div
+          style={{
+            margin: "40px auto 0px auto",
+            padding: "0 20px",
+            display: "flex",
+            flexDirection: "column"
+          }}
+        >
+          {r0 === "home" && <Home />}
+          {r0 === "about" && <About />}
+          {r0 === "tools" && (
+            <>
+              {r1 === "play-button" && <PlayButton />}
+              {r1 === "repeat-pattern" && <RepeatPattern />}
+              <Menu />
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

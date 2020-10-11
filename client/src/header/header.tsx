@@ -23,7 +23,8 @@ export let Header: FC = () => {
         position: "fixed",
         height: 40,
         width: "100%",
-        top: 0
+        top: 0,
+        zIndex: 2
       }}
     >
       <div
