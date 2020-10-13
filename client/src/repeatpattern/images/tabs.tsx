@@ -8,6 +8,7 @@ type Props = {
   }[];
   addNew: () => string;
   removeElement: (id: string) => void;
+  onActiveChange: (id: string) => void;
 };
 
 const BG_GRAY = "rgb(231, 234, 237)";
@@ -16,7 +17,12 @@ const ICON_HOVER = "rgb(209, 210, 212)";
 const PIPE = "rgb(144, 148, 151)";
 const WHITE = "#ffffff";
 
-export let Tabs: FC<Props> = ({ content, addNew, removeElement }) => {
+export let Tabs: FC<Props> = ({
+  content,
+  addNew,
+  removeElement,
+  onActiveChange
+}) => {
   let [state, dispatch] = useReducer(
     (
       prev: {
@@ -38,19 +44,19 @@ export let Tabs: FC<Props> = ({ content, addNew, removeElement }) => {
         case "setActive":
           return {
             ...prev,
-            active: payload,
+            active: payload as string,
             activeIdx: moveNegOne(content.findIndex(i => i.id === payload))
           };
         case "setHoveredTab":
           return {
             ...prev,
-            hoveredTab: payload,
+            hoveredTab: payload as string,
             hoveredTabIdx: moveNegOne(content.findIndex(i => i.id === payload))
           };
         case "setHoveredIcon":
-          return { ...prev, hoveredIcon: payload };
+          return { ...prev, hoveredIcon: payload as string };
         case "setHoveredPlus":
-          return { ...prev, hoveredPlus: payload };
+          return { ...prev, hoveredPlus: payload as boolean };
         default:
           return prev;
       }
@@ -81,6 +87,10 @@ export let Tabs: FC<Props> = ({ content, addNew, removeElement }) => {
       dispatch(["setActive", current.id]);
     }
   }, [current, active]);
+
+  useEffect(() => {
+    onActiveChange(active);
+  }, [active]);
 
   return (
     <div style={{ display: "flex", cursor: "default" }}>
@@ -243,11 +253,18 @@ export let Tabs: FC<Props> = ({ content, addNew, removeElement }) => {
           </div>
         </div>
         <div style={{ backgroundColor: WHITE, padding: 20 }}>
-          {current.element}
+          {content.map(c => (
+            <div
+              style={{ display: c === current ? "block" : "none" }}
+              key={c.id}
+            >
+              {c.element}
+            </div>
+          ))}
         </div>
       </div>
     </div>
   );
 };
 
-let moveNegOne = (x: number) => (x === -1 ? null : x);
+let moveNegOne = (x: number) => (x === -1 ? -10000 : x);

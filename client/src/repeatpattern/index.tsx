@@ -1,7 +1,7 @@
 import React, { FC } from "react";
 import { Tabs, Image, getEmptyImage } from "./images";
 import { Preview } from "./preview";
-import { RepeatProvider, useRepeatContext } from "./rContext";
+import { RepeatProvider, useRepeatContext } from "./repeat-context";
 
 export let RepeatPattern: FC = () => {
   return (
@@ -42,6 +42,9 @@ let ImageTabs: FC = () => {
           let newImage = getEmptyImage();
           repeatDispatch(["newImage", newImage]);
         }
+      }}
+      onActiveChange={id => {
+        repeatDispatch(["setActive", parseInt(id)]);
       }}
     />
   );

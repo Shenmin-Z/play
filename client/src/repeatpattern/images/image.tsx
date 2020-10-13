@@ -1,5 +1,5 @@
-import React, { FC, CSSProperties, useState, useEffect, useRef } from "react";
-import { useRepeatContext } from "../rContext";
+import React, { FC, CSSProperties, useEffect, useRef, useReducer } from "react";
+import { useRepeatContext } from "../repeat-context";
 
 export type ImageInfo = {
   id: number;
@@ -32,17 +32,71 @@ export let getEmptyImage: () => ImageInfo = () => {
 };
 export let initEmptyImage = getEmptyImage();
 
+type State = {
+  blobUrl: string;
+  applyBtnHovered: boolean;
+  resetBtnHovered: boolean;
+  buf: ImageInfo;
+  originalSize: {
+    width: number;
+    height: number;
+  };
+};
+
+type Action =
+  | ["setBlobUrl", string]
+  | ["setApplyBtnHovered", boolean]
+  | ["setResetBtnHovered", boolean]
+  | ["setBuf", ImageInfo]
+  | ["setOriginalSize", State["originalSize"]];
+
+type Reducer = {
+  (p: State, a: Action): State;
+};
+
 export let Image: FC<ImageInfo> = props => {
   let { repeatDispatch } = useRepeatContext();
 
-  let [blobUrl, setBlobUrl] = useState(
-    props.file ? URL.createObjectURL(props.file) : null
+  let [state, dispatch] = useReducer<Reducer>(
+    (state, action) => {
+      let [type, payload] = action;
+      switch (type) {
+        case "setBlobUrl":
+          return { ...state, blobUrl: payload as string };
+        case "setApplyBtnHovered":
+          return { ...state, applyBtnHovered: payload as boolean };
+        case "setResetBtnHovered":
+          return { ...state, resetBtnHovered: payload as boolean };
+        case "setBuf":
+          return { ...state, buf: payload as ImageInfo };
+        case "setOriginalSize":
+          return { ...state, originalSize: payload as State["originalSize"] };
+        default:
+          return state;
+      }
+    },
+    {
+      blobUrl: props.file ? URL.createObjectURL(props.file) : null,
+      applyBtnHovered: false,
+      resetBtnHovered: false,
+      buf: { ...props },
+      originalSize: {
+        height: null,
+        width: null
+      }
+    }
   );
+
+  let { blobUrl, applyBtnHovered, resetBtnHovered, buf, originalSize } = state;
+
+  let syncImage = (newImg?: ImageInfo) => {
+    repeatDispatch(["setImage", newImg || buf]);
+  };
 
   useEffect(() => {
     if (blobUrl) return;
     if (props.file) {
-      setBlobUrl(URL.createObjectURL(props.file));
+      dispatch(["setBlobUrl", URL.createObjectURL(props.file)]);
     }
     return () => {
       if (blobUrl) {
@@ -51,87 +105,191 @@ export let Image: FC<ImageInfo> = props => {
     };
   }, [props.file, blobUrl]);
 
+  useEffect(() => {
+    dispatch(["setBuf", props]);
+  }, [props]);
+
   let inputRef = useRef<HTMLInputElement>();
 
   return (
     <div style={{ display: "flex" }}>
-      <div style={{ marginRight: 20 }}>
+      <div
+        style={{ marginRight: 20, display: "flex", flexDirection: "column" }}
+      >
         {blobUrl ? (
-          <img src={blobUrl} alt="selected image" />
-        ) : (
-          <input
-            type="file"
-            ref={inputRef}
-            accept=".jpg, .jpeg, .png"
-            onChange={() => {
-              let files = inputRef.current.files;
-              if (files.length === 1) {
-                repeatDispatch(["setImage", { ...props, file: files[0] }]);
-              }
+          <img
+            src={blobUrl}
+            alt="selected image"
+            style={{ maxHeight: 120, maxWidth: 120 }}
+            onLoad={e => {
+              let { width, height } = e.target as HTMLImageElement;
+              dispatch(["setBuf", { ...buf, w: width, h: height }]);
+              dispatch(["setOriginalSize", { width, height }]);
+              repeatDispatch(["setImage", { ...buf, w: width, h: height }]);
             }}
           />
+        ) : (
+          <label
+            style={{
+              cursor: "pointer",
+              border: "2px dashed #0087F7",
+              borderRadius: 5,
+              background: "white",
+              height: 100,
+              width: 100,
+              lineHeight: "100px",
+              textAlign: "center"
+            }}
+          >
+            <input
+              style={{ display: "none" }}
+              type="file"
+              ref={inputRef}
+              accept=".jpg, .jpeg, .png"
+              onChange={() => {
+                let files = inputRef.current.files;
+                if (files.length === 1) {
+                  repeatDispatch(["setImage", { ...props, file: files[0] }]);
+                }
+              }}
+            />
+            Upload
+          </label>
         )}
       </div>
       <div>
         <div style={formRow}>
           <Field
             label="Width"
-            value={props.w}
-            onChange={v => repeatDispatch(["setImage", { ...props, w: v }])}
+            value={buf.w}
+            onChange={v => dispatch(["setBuf", { ...buf, w: v }])}
           />
           <span style={{ width: 20 }} />
           <Field
             label="Height"
-            value={props.h}
-            onChange={v => repeatDispatch(["setImage", { ...props, h: v }])}
+            value={buf.h}
+            onChange={v => dispatch(["setBuf", { ...buf, h: v }])}
           />
         </div>
         <div style={formRow}>
           <Field
             label="X"
-            value={props.x}
-            onChange={v => repeatDispatch(["setImage", { ...props, x: v }])}
+            value={buf.x}
+            onChange={v => dispatch(["setBuf", { ...buf, x: v }])}
           />
           <span style={{ width: 20 }} />
           <Field
             label="Y"
-            value={props.y}
-            onChange={v => repeatDispatch(["setImage", { ...props, y: v }])}
+            value={buf.y}
+            onChange={v => dispatch(["setBuf", { ...buf, y: v }])}
           />
         </div>
         <div style={formRow}>
           <Field
             label="r1.x"
-            value={props.r1?.x}
+            value={buf.r1?.x}
             onChange={v =>
-              repeatDispatch(["setImage", { ...props, r1: { ...props, x: v } }])
+              dispatch(["setBuf", { ...buf, r1: { ...buf.r1, x: v } }])
             }
           />
           <span style={{ width: 20 }} />
           <Field
             label="r1.y"
-            value={props.r1?.y}
+            value={buf.r1?.y}
             onChange={v =>
-              repeatDispatch(["setImage", { ...props, r1: { ...props, y: v } }])
+              dispatch(["setBuf", { ...buf, r1: { ...buf.r1, y: v } }])
             }
           />
         </div>
         <div style={formRow}>
           <Field
             label="r2.x"
-            value={props.r2?.x}
+            value={buf.r2?.x}
             onChange={v =>
-              repeatDispatch(["setImage", { ...props, r2: { ...props, x: v } }])
+              dispatch(["setBuf", { ...buf, r2: { ...buf.r2, x: v } }])
             }
           />
           <span style={{ width: 20 }} />
           <Field
             label="r2.y"
-            value={props.r2?.y}
+            value={buf.r2?.y}
             onChange={v =>
-              repeatDispatch(["setImage", { ...props, r2: { ...props, y: v } }])
+              dispatch(["setBuf", { ...buf, r2: { ...buf.r2, y: v } }])
             }
           />
+        </div>
+        <div
+          style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}
+        >
+          <div
+            onMouseOver={() => {
+              dispatch(["setResetBtnHovered", true]);
+            }}
+            onMouseLeave={() => {
+              dispatch(["setResetBtnHovered", false]);
+            }}
+            onClick={() => {
+              let newImg = {
+                ...buf,
+                w: originalSize.width,
+                h: originalSize.height,
+                x: 0,
+                y: 0,
+                r1: {
+                  x: null,
+                  y: null
+                },
+                r2: {
+                  x: null,
+                  y: null
+                }
+              };
+              dispatch(["setBuf", newImg]);
+              syncImage(newImg);
+            }}
+            style={{
+              border: "1px solid transparent",
+              borderRadius: 4,
+              color: "rgb(62, 115, 157)",
+              backgroundColor: resetBtnHovered
+                ? "rgb(160, 199, 228)"
+                : "rgb(225, 236, 244)",
+              textAlign: "center",
+              height: 30,
+              width: 64,
+              lineHeight: "30px",
+              cursor: "pointer",
+              marginRight: 20
+            }}
+          >
+            Reset
+          </div>
+          <div
+            onMouseOver={() => {
+              dispatch(["setApplyBtnHovered", true]);
+            }}
+            onMouseLeave={() => {
+              dispatch(["setApplyBtnHovered", false]);
+            }}
+            onClick={() => {
+              syncImage();
+            }}
+            style={{
+              border: "1px solid transparent",
+              borderRadius: 4,
+              color: "#ffffff",
+              backgroundColor: applyBtnHovered
+                ? "rgb(0, 119, 204)"
+                : "rgb(38, 132, 255)",
+              textAlign: "center",
+              height: 30,
+              width: 64,
+              lineHeight: "30px",
+              cursor: "pointer"
+            }}
+          >
+            Apply
+          </div>
         </div>
       </div>
     </div>

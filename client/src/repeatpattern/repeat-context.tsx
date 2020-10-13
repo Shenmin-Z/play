@@ -9,12 +9,17 @@ import { ImageInfo, initEmptyImage } from "./images";
 
 type RepeatState = {
   images: ImageInfo[];
+  active: number;
 };
+
+type MoveImagePayload = { id: number; dx: number; dy: number };
 
 type RepeatAction =
   | ["newImage", ImageInfo]
   | ["setImage", ImageInfo]
-  | ["removeImage", ImageInfo["id"]];
+  | ["moveImage", MoveImagePayload]
+  | ["removeImage", ImageInfo["id"]]
+  | ["setActive", ImageInfo["id"]];
 
 type RepeatReducer = {
   (p: RepeatState, a: RepeatAction): RepeatState;
@@ -30,7 +35,7 @@ export let useRepeatContext = () => useContext(RepeatContext);
 
 export let RepeatProvider: FC = ({ children }) => {
   let [repeatState, repeatDispatch] = useReducer<RepeatReducer>(
-    (state, action) => {
+    function reduce(state, action) {
       let [type, payload] = action;
       switch (type) {
         case "newImage": {
@@ -49,6 +54,19 @@ export let RepeatProvider: FC = ({ children }) => {
             })
           };
         }
+        case "moveImage": {
+          let { id, dx, dy } = payload as MoveImagePayload;
+          return {
+            ...state,
+            images: state.images.map(i => {
+              if (i.id !== id) {
+                return i;
+              } else {
+                return { ...i, x: i.x + dx, y: i.y + dy };
+              }
+            })
+          };
+        }
         case "removeImage":
           let filtered = state.images.filter(
             i => i.id !== (payload as ImageInfo["id"])
@@ -57,11 +75,13 @@ export let RepeatProvider: FC = ({ children }) => {
             ...state,
             images: filtered
           };
+        case "setActive":
+          return { ...state, active: payload as ImageInfo["id"] };
         default:
           return state;
       }
     },
-    { images: [initEmptyImage] }
+    { images: [initEmptyImage], active: initEmptyImage.id }
   );
 
   return (

@@ -1,37 +1,72 @@
-import React, { FC, useReducer } from "react";
+import React, { FC, useEffect } from "react";
+import { fromEvent } from "rxjs";
+import { switchMap, tap, takeUntil, filter } from "rxjs/operators";
+import { usePreviewContext, Mode } from "./preview-context";
 
 const SIZE = 40;
 const BG = "rgb(241, 243, 244)";
 const BUTTON = "rgb(220, 222, 224)";
-
-type Mode = "move" | "resize" | "rd1" | "rd2";
-
-type State = {
-  mode: Mode;
-};
-
-type Action = ["setMode", Mode];
-
-type Reducer = {
-  (p: State, a: Action): State;
-};
+const ACTIVE = "#ffffff";
 
 export let Toolbar: FC = () => {
-  let [state, dispatch] = useReducer<Reducer>(
-    (state, action) => {
-      let [type, payload] = action;
-      switch (type) {
-        case "setMode": {
-          return { ...state, mode: payload };
-        }
-        default:
-          return state;
-      }
-    },
-    { mode: null }
-  );
+  let { previewDispatch } = usePreviewContext();
 
-  let { mode } = state;
+  useEffect(() => {
+    let keydown$ = fromEvent<KeyboardEvent>(document, "keydown");
+    let keyup$ = fromEvent<KeyboardEvent>(document, "keyup");
+
+    let f1 = filter((e: KeyboardEvent) => e.keyCode === 192 && !e.repeat);
+    let f2 = filter(
+      (e: KeyboardEvent) =>
+        !e.repeat && [49, 50, 51, 52].some(i => i === e.keyCode)
+    );
+
+    let subscription = keydown$
+      .pipe(
+        f1,
+        switchMap(() => {
+          return keydown$.pipe(
+            f2,
+            tap(e => {
+              if (e.keyCode === 49) {
+                previewDispatch(["setMode", "move"]);
+              }
+              if (e.keyCode === 50) {
+                previewDispatch(["setMode", "resize"]);
+              }
+              if (e.keyCode === 51) {
+                previewDispatch(["setMode", "rd1"]);
+              }
+              if (e.keyCode === 52) {
+                previewDispatch(["setMode", "rd2"]);
+              }
+            }),
+            takeUntil(
+              keyup$.pipe(
+                f1,
+                tap(() => {
+                  previewDispatch(["setMode", null]);
+                })
+              )
+            ),
+            switchMap(() =>
+              keyup$.pipe(
+                f2,
+                tap(() => {
+                  previewDispatch(["setMode", null]);
+                }),
+                takeUntil(keyup$.pipe(f1))
+              )
+            )
+          );
+        })
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   return (
     <div
@@ -46,66 +81,45 @@ export let Toolbar: FC = () => {
         cursor: "default"
       }}
     >
-      <Button
-        title="move"
-        onMouseOver={() => {
-          dispatch(["setMode", "move"]);
-        }}
-        onMouseLeave={() => {
-          dispatch(["setMode", null]);
-        }}
-      >
-        <TextIcon text="Move" active={mode === "move"} activeText={"M"} />
-      </Button>
-      <Button
-        title="resize"
-        onMouseOver={() => {
-          dispatch(["setMode", "resize"]);
-        }}
-        onMouseLeave={() => {
-          dispatch(["setMode", null]);
-        }}
-      >
-        <TextIcon text="Resize" active={mode === "resize"} activeText={"R"} />
-      </Button>
-      <Button
-        title="repeat direction 1"
-        onMouseOver={() => {
-          dispatch(["setMode", "rd1"]);
-        }}
-        onMouseLeave={() => {
-          dispatch(["setMode", null]);
-        }}
-      >
-        <TextIcon text="RD1" active={mode === "rd1"} activeText={"1"} />
-      </Button>
-      <Button
-        title="repeat direction 2"
-        onMouseOver={() => {
-          dispatch(["setMode", "rd2"]);
-        }}
-        onMouseLeave={() => {
-          dispatch(["setMode", null]);
-        }}
-      >
-        <TextIcon text="RD2" active={mode === "rd2"} activeText={"2"} />
-      </Button>
+      <Button type="move" />
+      <Button type="resize" />
+      <Button type="rd1" />
+      <Button type="rd2" />
     </div>
   );
 };
 
 type ButtonProps = {
-  title: string;
-  onMouseOver: () => void;
-  onMouseLeave: () => void;
+  type: Mode;
 };
 
-let Button: FC<ButtonProps> = ({
-  title,
-  children,
-  onMouseOver,
-  onMouseLeave
-}) => {
+const TEXT_MAP = {
+  move: "Move",
+  resize: "Resize",
+  rd1: "RD1",
+  rd2: "RD2"
+};
+
+const ACTIVE_TEXT_MAP = {
+  move: "M",
+  resize: "R",
+  rd1: "1",
+  rd2: "2"
+};
+
+let Button: FC<ButtonProps> = ({ type }) => {
+  let { previewState, previewDispatch } = usePreviewContext();
+
+  let { hover, mode } = previewState;
+
+  let active = (() => {
+    if (mode) {
+      return mode === type;
+    } else {
+      return hover === type;
+    }
+  })();
+
   return (
     <div
       style={{
@@ -114,34 +128,28 @@ let Button: FC<ButtonProps> = ({
         lineHeight: SIZE + "px",
         borderRadius: "50%",
         textAlign: "center",
-        backgroundColor: BUTTON,
+        backgroundColor: active ? ACTIVE : BUTTON,
         margin: "5px"
       }}
-      title={title}
-      onMouseOver={onMouseOver}
-      onMouseLeave={onMouseLeave}
-    >
-      {children}
-    </div>
-  );
-};
-
-type TextIconProps = {
-  text: string;
-  active: boolean;
-  activeText: string;
-};
-
-let TextIcon: FC<TextIconProps> = ({ text, active, activeText }) => {
-  return (
-    <span
-      style={{
-        fontSize: active ? 16 : 8,
-        fontWeight: active ? "bold" : "normal",
-        color: "rgb(98, 99, 101)"
+      onClick={() => {
+        previewDispatch(["toggleMode", type]);
+      }}
+      onMouseOver={() => {
+        //previewDispatch(["setHover", type]);
+      }}
+      onMouseLeave={() => {
+        //previewDispatch(["setHover", null]);
       }}
     >
-      {active ? activeText : text}
-    </span>
+      <span
+        style={{
+          fontSize: active ? 16 : 8,
+          fontWeight: active ? "bold" : "normal",
+          color: "rgb(98, 99, 101)"
+        }}
+      >
+        {active ? ACTIVE_TEXT_MAP[type] : TEXT_MAP[type]}
+      </span>
+    </div>
   );
 };
