@@ -2,6 +2,7 @@ import React, { FC, useState, useEffect, useRef } from "react";
 import { fromEvent, merge } from "rxjs";
 import { switchMap, tap, pairwise, takeUntil, filter } from "rxjs/operators";
 import { ImageInfo } from "../images";
+import { Resizer } from "./resizer";
 import { useRepeatContext } from "../repeat-context";
 import { usePreviewContext } from "./preview-context";
 
@@ -116,18 +117,32 @@ export let PreviewImage: FC<Props> = ({ image, toggleOverflow }) => {
   if (!blobUrl) return null;
 
   return (
-    <img
-      ref={imgRef}
-      src={blobUrl}
+    <span
       style={{
+        userSelect: "none",
         position: "absolute",
         transform: `translate3d(${x}px, ${y}px, 0)`,
+        boxSizing: "border-box",
         width: w,
-        height: h
+        height: h,
+        border: `1px solid ${
+          previewState.mode === "resize" ? "rgb(98, 99, 101)" : "transparent"
+        }`
       }}
-      onDragStart={e => {
-        e.preventDefault();
-      }}
-    />
+    >
+      <img
+        ref={imgRef}
+        src={blobUrl}
+        style={{
+          position: "absolute",
+          width: w,
+          height: h
+        }}
+        onDragStart={e => {
+          e.preventDefault();
+        }}
+      />
+      <Resizer w={w} h={h} id={image.id} />
+    </span>
   );
 };

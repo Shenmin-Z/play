@@ -120,9 +120,11 @@ export let Image: FC<ImageInfo> = props => {
           <img
             src={blobUrl}
             alt="selected image"
-            style={{ maxHeight: 120, maxWidth: 120 }}
             onLoad={e => {
-              let { width, height } = e.target as HTMLImageElement;
+              let img = e.target as HTMLImageElement;
+              let { width, height } = img;
+              img.style.maxWidth = "120px";
+              img.style.maxWidth = "120px";
               dispatch(["setBuf", { ...buf, w: width, h: height }]);
               dispatch(["setOriginalSize", { width, height }]);
               repeatDispatch(["setImage", { ...buf, w: width, h: height }]);

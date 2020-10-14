@@ -13,11 +13,14 @@ type RepeatState = {
 };
 
 type MoveImagePayload = { id: number; dx: number; dy: number };
+export type Position = "0" | "1" | "2" | "3" | "01" | "12" | "23" | "30";
+type ResizeImagePayload = { id: number; dx: number; dy: number; p: Position };
 
 type RepeatAction =
   | ["newImage", ImageInfo]
   | ["setImage", ImageInfo]
   | ["moveImage", MoveImagePayload]
+  | ["resizeImage", ResizeImagePayload]
   | ["removeImage", ImageInfo["id"]]
   | ["setActive", ImageInfo["id"]];
 
@@ -63,6 +66,65 @@ export let RepeatProvider: FC = ({ children }) => {
                 return i;
               } else {
                 return { ...i, x: i.x + dx, y: i.y + dy };
+              }
+            })
+          };
+        }
+        case "resizeImage": {
+          let { id, dx, dy, p } = payload as ResizeImagePayload;
+          return {
+            ...state,
+            images: state.images.map(i => {
+              if (i.id !== id) {
+                return i;
+              } else {
+                let [nx, ny, nw, nh] = [i.x, i.y, i.w, i.h];
+                switch (p) {
+                  case "01": {
+                    ny += dy;
+                    nw += dx;
+                    nh -= dy;
+                    break;
+                  }
+                  case "1": {
+                    ny += dy;
+                    nh -= dy;
+                    break;
+                  }
+                  case "12": {
+                    nx += dx;
+                    ny += dy;
+                    nw -= dx;
+                    nh -= dy;
+                    break;
+                  }
+                  case "2": {
+                    nx += dx;
+                    nw -= dx;
+                    break;
+                  }
+                  case "0": {
+                    nw += dx;
+                    break;
+                  }
+                  case "23": {
+                    nx += dx;
+                    nw -= dx;
+                    nh += dy;
+                    break;
+                  }
+                  case "3": {
+                    nh += dy;
+                    break;
+                  }
+                  case "30": {
+                    nw += dx;
+                    nh += dy;
+                    break;
+                  }
+                }
+                if (nw <= 0 || nh <= 0) return i;
+                return { ...i, x: nx, y: ny, w: nw, h: nh };
               }
             })
           };
