@@ -9,18 +9,21 @@ import { ImageInfo, initEmptyImage } from "./images";
 
 type RepeatState = {
   images: ImageInfo[];
+  canvasSize: { w: number; h: number };
   active: number;
 };
 
 type MoveImagePayload = { id: number; dx: number; dy: number };
 export type Position = "0" | "1" | "2" | "3" | "01" | "12" | "23" | "30";
 type ResizeImagePayload = { id: number; dx: number; dy: number; p: Position };
+type RepeatPayload = { id: number; type: "r1" | "r2"; dx: number; dy: number };
 
 type RepeatAction =
   | ["newImage", ImageInfo]
   | ["setImage", ImageInfo]
   | ["moveImage", MoveImagePayload]
   | ["resizeImage", ResizeImagePayload]
+  | ["setRepeat", RepeatPayload]
   | ["removeImage", ImageInfo["id"]]
   | ["setActive", ImageInfo["id"]];
 
@@ -129,7 +132,26 @@ export let RepeatProvider: FC = ({ children }) => {
             })
           };
         }
-        case "removeImage":
+        case "setRepeat": {
+          let { id, type, dx, dy } = payload as RepeatPayload;
+          return {
+            ...state,
+            images: state.images.map(i => {
+              if (i.id !== id) {
+                return i;
+              } else {
+                return {
+                  ...i,
+                  [type]: {
+                    x: (i[type]?.x || 0) + dx,
+                    y: (i[type]?.y || 0) + dy
+                  }
+                };
+              }
+            })
+          };
+        }
+        case "removeImage": {
           let filtered = state.images.filter(
             i => i.id !== (payload as ImageInfo["id"])
           );
@@ -137,13 +159,18 @@ export let RepeatProvider: FC = ({ children }) => {
             ...state,
             images: filtered
           };
+        }
         case "setActive":
           return { ...state, active: payload as ImageInfo["id"] };
         default:
           return state;
       }
     },
-    { images: [initEmptyImage], active: initEmptyImage.id }
+    {
+      images: [initEmptyImage],
+      canvasSize: { w: 1024, h: 1024 },
+      active: initEmptyImage.id
+    }
   );
 
   return (

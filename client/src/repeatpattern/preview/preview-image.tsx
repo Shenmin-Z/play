@@ -3,6 +3,8 @@ import { fromEvent, merge } from "rxjs";
 import { switchMap, tap, pairwise, takeUntil, filter } from "rxjs/operators";
 import { ImageInfo } from "../images";
 import { Resizer } from "./resizer";
+import { BuddyImage } from "./buddy";
+import { ImageBuddies } from "./buddies";
 import { useRepeatContext } from "../repeat-context";
 import { usePreviewContext } from "./preview-context";
 
@@ -18,7 +20,7 @@ const INIT_MODE = {
   rd2: false
 };
 export let PreviewImage: FC<Props> = ({ image, toggleOverflow }) => {
-  let { file, w, h, x, y, r1, r2 } = image;
+  let { file, w, h, x, y } = image;
 
   let [blobUrl] = useState(file ? URL.createObjectURL(file) : null);
 
@@ -130,6 +132,7 @@ export let PreviewImage: FC<Props> = ({ image, toggleOverflow }) => {
         }`
       }}
     >
+      <ImageBuddies src={blobUrl} image={image} />
       <img
         ref={imgRef}
         src={blobUrl}
@@ -143,6 +146,18 @@ export let PreviewImage: FC<Props> = ({ image, toggleOverflow }) => {
         }}
       />
       <Resizer w={w} h={h} id={image.id} />
+      <BuddyImage
+        src={blobUrl}
+        image={image}
+        type="r1"
+        toggleOverflow={toggleOverflow}
+      />
+      <BuddyImage
+        src={blobUrl}
+        image={image}
+        type="r2"
+        toggleOverflow={toggleOverflow}
+      />
     </span>
   );
 };

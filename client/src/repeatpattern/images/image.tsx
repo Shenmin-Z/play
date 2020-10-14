@@ -1,4 +1,11 @@
-import React, { FC, CSSProperties, useEffect, useRef, useReducer } from "react";
+import React, {
+  FC,
+  CSSProperties,
+  useEffect,
+  useRef,
+  useReducer,
+  useState
+} from "react";
 import { useRepeatContext } from "../repeat-context";
 
 export type ImageInfo = {
@@ -305,6 +312,8 @@ type FieldProps = {
 };
 
 let Field: FC<FieldProps> = ({ label, value, onChange }) => {
+  let [minus, setMinus] = useState(null);
+
   return (
     <div
       style={{
@@ -318,11 +327,18 @@ let Field: FC<FieldProps> = ({ label, value, onChange }) => {
       <input
         style={formInputStyle(false)}
         type="text"
-        value={value ?? ""}
+        value={minus || (value ?? "")}
         onChange={e => {
           let value = e.target.value;
-          if (/^[0-9]+$/.test(value)) {
-            onChange(parseInt(value));
+          if (/^-?[0-9]*$/.test(value)) {
+            let parsed = parseInt(value);
+            let intValue = isNaN(parsed) ? null : parsed;
+            if (value === "-") {
+              setMinus("-");
+            } else {
+              setMinus(null);
+            }
+            onChange(intValue);
           }
         }}
       />

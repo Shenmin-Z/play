@@ -1,18 +1,15 @@
-import React, { FC, useReducer } from "react";
+import React, { FC, useReducer, useRef } from "react";
 import { ConfigBox } from "./conf-box";
 import { PreviewImage } from "./preview-image";
 import { useRepeatContext } from "../repeat-context";
 import { usePreviewContext } from "./preview-context";
 
-type Props = {
-  width?: number;
-  height?: number;
-};
-
-export let Canvas: FC<Props> = ({ width = 1024, height = 1024 }) => {
-  let { repeatState } = useRepeatContext();
+export let Canvas: FC = () => {
+  let { repeatState, repeatDispatch } = useRepeatContext();
   let { previewState } = usePreviewContext();
-  let { images } = repeatState;
+  let { images, canvasSize, active: activeId } = repeatState;
+  let { w: width, h: height } = canvasSize;
+  let { mode } = previewState;
 
   let [state, dispatch] = useReducer(
     (state: { overflow: string }, action: ["toggleOverflow"]) => {
@@ -31,13 +28,32 @@ export let Canvas: FC<Props> = ({ width = 1024, height = 1024 }) => {
   );
 
   let cursor = (() => {
-    switch (previewState.mode) {
+    switch (mode) {
       case "move":
         return "grab";
       default:
         return "default";
     }
   })();
+
+  let divRef = useRef<HTMLDivElement>();
+  let mouseUp = (e: { clientX: number; clientY: number }) => {
+    let active = images.find(i => i.id === activeId);
+    if ((mode === "rd1" && !active.r1) || (mode === "rd2" && !active.r2)) {
+      let { left, top } = divRef.current.getBoundingClientRect();
+      let [x, y] = [e.clientX - left - active.x, e.clientY - top - active.y];
+      repeatDispatch([
+        "setImage",
+        {
+          ...active,
+          [mode === "rd1" ? "r1" : "r2"]: {
+            x,
+            y
+          }
+        }
+      ]);
+    }
+  };
 
   return (
     <div
@@ -57,6 +73,7 @@ export let Canvas: FC<Props> = ({ width = 1024, height = 1024 }) => {
         }}
       >
         <div
+          ref={divRef}
           style={{
             width,
             height,
@@ -66,6 +83,7 @@ export let Canvas: FC<Props> = ({ width = 1024, height = 1024 }) => {
               "radial-gradient(circle, rgb(110, 110, 110) 1px, rgba(0, 0, 0, 0) 1px)",
             position: "relative"
           }}
+          onMouseUp={mouseUp}
         >
           {images.map(i => (
             <PreviewImage

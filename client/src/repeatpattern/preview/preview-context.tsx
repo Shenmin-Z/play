@@ -38,7 +38,7 @@ export let PreviewProvider: FC = ({ children }) => {
           return { ...state, mode: payload };
         }
         case "toggleMode": {
-          return { ...state, mode: state.mode ? null : payload };
+          return { ...state, mode: state.mode === payload ? null : payload };
         }
         case "setHover": {
           return { ...state, hover: payload };

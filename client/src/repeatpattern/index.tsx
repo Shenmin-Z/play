@@ -18,10 +18,12 @@ let ImageTabs: FC = () => {
   let { repeatState, repeatDispatch } = useRepeatContext();
   let { images } = repeatState;
   let elements = images.map(i => {
+    let fileName = i.file?.name;
+
     return {
       element: <Image {...i} key={i.id} />,
       id: i.id + "",
-      title: "Empty - " + i.id
+      title: fileName || "Empty - " + i.id
     };
   });
 
