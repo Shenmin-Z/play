@@ -25,7 +25,8 @@ type RepeatAction =
   | ["resizeImage", ResizeImagePayload]
   | ["setRepeat", RepeatPayload]
   | ["removeImage", ImageInfo["id"]]
-  | ["setActive", ImageInfo["id"]];
+  | ["setActive", ImageInfo["id"]]
+  | ["setCanvas", Partial<RepeatState["canvasSize"]>];
 
 type RepeatReducer = {
   (p: RepeatState, a: RepeatAction): RepeatState;
@@ -162,6 +163,14 @@ export let RepeatProvider: FC = ({ children }) => {
         }
         case "setActive":
           return { ...state, active: payload as ImageInfo["id"] };
+        case "setCanvas":
+          return {
+            ...state,
+            canvasSize: {
+              ...state.canvasSize,
+              ...(payload as RepeatState["canvasSize"])
+            }
+          };
         default:
           return state;
       }

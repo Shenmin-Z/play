@@ -9,10 +9,9 @@ type Props = {
   src: string;
   image: ImageInfo;
   type: "r1" | "r2";
-  toggleOverflow: () => void;
 };
 
-export let BuddyImage: FC<Props> = ({ src, image, type, toggleOverflow }) => {
+export let BuddyImage: FC<Props> = ({ src, image, type }) => {
   let { repeatDispatch } = useRepeatContext();
 
   let { previewState } = usePreviewContext();
@@ -41,7 +40,6 @@ export let BuddyImage: FC<Props> = ({ src, image, type, toggleOverflow }) => {
     let subscription = start$
       .pipe(
         filter(() => enableRef.current),
-        tap(toggleOverflow),
         switchMap(() =>
           move$.pipe(
             pairwise(),
@@ -70,7 +68,7 @@ export let BuddyImage: FC<Props> = ({ src, image, type, toggleOverflow }) => {
                 }
               ]);
             }),
-            takeUntil(end$.pipe(tap(toggleOverflow)))
+            takeUntil(end$)
           )
         )
       )

@@ -22,6 +22,7 @@ export let ImageBuddies: FC<Props> = ({ image, src }) => {
 
   let allPoints = useMemo(() => {
     if (isNothing(r1) && isNothing(r2)) return [];
+    if (a1 * a1 + b1 * b1 < 5 || a2 * a2 + b2 * b2 < 5) return [];
 
     let w1 = -w - x;
     let w2 = cw - x;
@@ -45,7 +46,7 @@ export let ImageBuddies: FC<Props> = ({ image, src }) => {
 
     let allPoints = getI(0);
 
-    if (Math.abs(Math.atan(a1 / b1) - Math.atan(a2 / b2)) > 0.05) {
+    if (Math.abs(Math.atan(a1 / b1) - Math.atan(a2 / b2)) > 0.1) {
       let j = 1;
       while (true) {
         let tmp = getI(j);

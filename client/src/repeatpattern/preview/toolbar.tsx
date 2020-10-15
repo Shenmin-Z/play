@@ -71,12 +71,11 @@ export let Toolbar: FC = () => {
   return (
     <div
       style={{
-        width: SIZE,
+        height: SIZE,
         backgroundColor: BG,
         border: `10px solid ${BG}`,
         borderRadius: 10,
         display: "flex",
-        flexDirection: "column",
         alignItems: "center",
         cursor: "default"
       }}

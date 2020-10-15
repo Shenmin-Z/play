@@ -327,7 +327,10 @@ let Field: FC<FieldProps> = ({ label, value, onChange }) => {
       <input
         style={formInputStyle(false)}
         type="text"
-        value={minus || (value ?? "")}
+        value={
+          minus ||
+          (value !== null && value !== undefined ? Math.round(value) : "")
+        }
         onChange={e => {
           let value = e.target.value;
           if (/^-?[0-9]*$/.test(value)) {
@@ -339,6 +342,19 @@ let Field: FC<FieldProps> = ({ label, value, onChange }) => {
               setMinus(null);
             }
             onChange(intValue);
+          }
+        }}
+        onKeyDown={e => {
+          let { keyCode } = e;
+          let v = parseInt(value + "");
+          if (isNaN(v)) v = 0;
+          // up
+          if (keyCode === 38) {
+            onChange(v + 1);
+          }
+          // down
+          if (keyCode === 40) {
+            onChange(v - 1);
           }
         }}
       />

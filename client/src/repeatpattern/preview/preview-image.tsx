@@ -10,7 +10,6 @@ import { usePreviewContext } from "./preview-context";
 
 type Props = {
   image: ImageInfo;
-  toggleOverflow: () => void;
 };
 
 const INIT_MODE = {
@@ -19,7 +18,7 @@ const INIT_MODE = {
   rd1: false,
   rd2: false
 };
-export let PreviewImage: FC<Props> = ({ image, toggleOverflow }) => {
+export let PreviewImage: FC<Props> = ({ image }) => {
   let { file, w, h, x, y } = image;
 
   let [blobUrl] = useState(file ? URL.createObjectURL(file) : null);
@@ -28,7 +27,7 @@ export let PreviewImage: FC<Props> = ({ image, toggleOverflow }) => {
 
   let { repeatDispatch } = useRepeatContext();
 
-  let { previewState, previewDispatch } = usePreviewContext();
+  let { previewState } = usePreviewContext();
 
   let modeRef = useRef(INIT_MODE);
 
@@ -69,7 +68,6 @@ export let PreviewImage: FC<Props> = ({ image, toggleOverflow }) => {
 
     let subscription = start$
       .pipe(
-        tap(toggleOverflow),
         switchMap(() =>
           move$.pipe(
             pairwise(),
@@ -92,7 +90,6 @@ export let PreviewImage: FC<Props> = ({ image, toggleOverflow }) => {
             }),
             takeUntil(
               end$.pipe(
-                tap(toggleOverflow),
                 tap(() => {
                   //previewDispatch(["setMode", null]);
                 })
@@ -146,18 +143,8 @@ export let PreviewImage: FC<Props> = ({ image, toggleOverflow }) => {
         }}
       />
       <Resizer w={w} h={h} id={image.id} />
-      <BuddyImage
-        src={blobUrl}
-        image={image}
-        type="r1"
-        toggleOverflow={toggleOverflow}
-      />
-      <BuddyImage
-        src={blobUrl}
-        image={image}
-        type="r2"
-        toggleOverflow={toggleOverflow}
-      />
+      <BuddyImage src={blobUrl} image={image} type="r1" />
+      <BuddyImage src={blobUrl} image={image} type="r2" />
     </span>
   );
 };
