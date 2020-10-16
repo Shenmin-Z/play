@@ -26,7 +26,7 @@ type RepeatAction =
   | ["setRepeat", RepeatPayload]
   | ["removeImage", ImageInfo["id"]]
   | ["setActive", ImageInfo["id"]]
-  | ["setCanvas", Partial<RepeatState["canvasSize"]>];
+  | ["setCanvas", RepeatState["canvasSize"]];
 
 type RepeatReducer = {
   (p: RepeatState, a: RepeatAction): RepeatState;

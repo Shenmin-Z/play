@@ -1,5 +1,7 @@
 import React, { FC, CSSProperties, ChangeEvent, useReducer } from "react";
+import axios from "axios";
 import { useRepeatContext } from "../repeat-context";
+import { ImageInfo } from "../images";
 
 const BG = "rgb(241, 243, 244)";
 
@@ -24,7 +26,7 @@ type Reducer = {
 export let ConfigBox: FC = () => {
   let { repeatState, repeatDispatch } = useRepeatContext();
 
-  let { canvasSize } = repeatState;
+  let { canvasSize, images } = repeatState;
   let { w, h } = canvasSize;
 
   let [state, dispatch] = useReducer<Reducer>(
@@ -140,6 +142,28 @@ export let ConfigBox: FC = () => {
           cursor: "pointer",
           marginRight: 20
         }}
+        onClick={() => {
+          let formData = new FormData();
+          images.forEach((i, idx) => {
+            formData.append(`file-${idx}`, i.file);
+            formData.append(`detail-${idx}`, detailString(i));
+          });
+          formData.append("image-count", images.length + "");
+          formData.append("canvas", JSON.stringify({ w, h }));
+          axios({
+            method: "post",
+            url: "/api/image/repeatpattern",
+            data: formData,
+            headers: {
+              "Content-Type": "multipart/form-data"
+            }
+          }).then(({ data }) => {
+            let a = document.createElement("a");
+            a.href = "data:image/jpeg;base64," + data;
+            a.download = "repeat.jpeg";
+            a.click();
+          });
+        }}
       >
         Download
       </div>
@@ -171,3 +195,21 @@ let formInputStyle: (e: boolean) => CSSProperties = e => ({
   lineHeight: 1.25,
   outline: "none"
 });
+
+let detailString = (i: ImageInfo) => {
+  let result = {
+    W: Math.round(i.w),
+    H: Math.round(i.h),
+    X: Math.round(i.x),
+    Y: Math.round(i.y),
+    R1: {
+      X: Math.round(i.r1?.x ?? 100000),
+      Y: Math.round(i.r1?.y ?? 100000)
+    },
+    R2: {
+      X: Math.round(i.r2?.x ?? 100000),
+      Y: Math.round(i.r2?.y ?? 100000)
+    }
+  };
+  return JSON.stringify(result);
+};
