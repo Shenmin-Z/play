@@ -1,0 +1,14 @@
+docker login docker.io
+
+docker push zhoushenmin/draw:latest
+
+docker container prune
+docker container rm xxx
+
+docker image ls
+docker image prune
+docker image rm xxx
+
+docker build -t zhoushenmin/draw --build-arg https_proxy=http://aaa:9999 .
+
+docker run -it --entrypoint sh image_name
