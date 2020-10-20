@@ -9,15 +9,22 @@ type State = {
   applyBtnHovered: boolean;
   downloadBtnHovered: boolean;
   buf: {
-    w: number;
-    h: number;
+    w: string;
+    h: string;
+    bgColor: string;
+  };
+  error: {
+    w: boolean;
+    h: boolean;
+    bgColor: boolean;
   };
 };
 
 type Action =
   | ["setApplyBtnHovered", boolean]
   | ["setDownloadBtnHovered", boolean]
-  | ["setBuf", Partial<State["buf"]>];
+  | ["setBuf", Partial<State["buf"]>]
+  | ["setError", Partial<State["error"]>];
 
 type Reducer = {
   (p: State, a: Action): State;
@@ -26,7 +33,7 @@ type Reducer = {
 export let ConfigBox: FC = () => {
   let { repeatState, repeatDispatch } = useRepeatContext();
 
-  let { canvasSize, images } = repeatState;
+  let { canvasSize, canvasColor, images } = repeatState;
   let { w, h } = canvasSize;
 
   let [state, dispatch] = useReducer<Reducer>(
@@ -42,6 +49,11 @@ export let ConfigBox: FC = () => {
             ...state,
             buf: { ...state.buf, ...(payload as State["buf"]) }
           };
+        case "setError":
+          return {
+            ...state,
+            error: { ...state.error, ...(payload as State["error"]) }
+          };
         default:
           return state;
       }
@@ -50,25 +62,63 @@ export let ConfigBox: FC = () => {
       applyBtnHovered: false,
       downloadBtnHovered: false,
       buf: {
-        w,
-        h
+        w: canvasSize.w + "",
+        h: canvasSize.h + "",
+        bgColor: canvasColor
+      },
+      error: {
+        w: false,
+        h: false,
+        bgColor: false
       }
     }
   );
-  let { applyBtnHovered, downloadBtnHovered, buf } = state;
+  let { applyBtnHovered, downloadBtnHovered, buf, error } = state;
 
-  let onChange = (x: "w" | "h") => (e: ChangeEvent<HTMLInputElement>) => {
+  let onChange = (x: "w" | "h" | "bgColor") => (
+    e: ChangeEvent<HTMLInputElement>
+  ) => {
     let { value } = e.target;
-    if (/^\d*$/.test(value)) {
-      let intValue = parseInt(value);
-      let v: number | string = isNaN(intValue) ? "" : intValue;
-      dispatch(["setBuf", { [x]: v }]);
+    dispatch(["setBuf", { [x]: value }]);
+    if (x === "w" || x === "h") {
+      if (/^\d*$/.test(value)) {
+        dispatch(["setError", { [x]: false }]);
+      } else {
+        dispatch(["setError", { [x]: true }]);
+      }
     }
+    if (x === "bgColor") {
+      if (!/^\d+,\s?\d+,\s?\d+$/.test(value)) {
+        dispatch(["setError", { [x]: true }]);
+      } else {
+        for (let i of value.split(",").map(i => parseInt(i.trim()))) {
+          if (i < 0 || i > 255) {
+            dispatch(["setError", { [x]: true }]);
+            return;
+          }
+        }
+        dispatch(["setError", { [x]: false }]);
+      }
+    }
+  };
+
+  let onApply = () => {
+    for (let key of Object.keys(error)) {
+      if (error[key]) return;
+    }
+    repeatDispatch([
+      "setCanvas",
+      {
+        canvasColor: buf.bgColor,
+        canvasSize: { w: parseInt(buf.w), h: parseInt(buf.h) }
+      }
+    ]);
   };
 
   return (
     <div
       style={{
+        marginTop: 10,
         backgroundColor: BG,
         border: `10px solid ${BG}`,
         borderRadius: 10,
@@ -79,7 +129,7 @@ export let ConfigBox: FC = () => {
       <div style={fieldStyle}>
         <label style={formLabelStyle}>Width:</label>
         <input
-          style={formInputStyle(false)}
+          style={formInputStyle(error.w)}
           value={buf.w}
           onChange={onChange("w")}
           type="text"
@@ -88,9 +138,18 @@ export let ConfigBox: FC = () => {
       <div style={fieldStyle}>
         <label style={formLabelStyle}>Height:</label>
         <input
-          style={formInputStyle(false)}
+          style={formInputStyle(error.h)}
           value={buf.h}
           onChange={onChange("h")}
+          type="text"
+        />
+      </div>
+      <div style={fieldStyle}>
+        <label style={formLabelStyle}>Background Color:</label>
+        <input
+          style={{ ...formInputStyle(error.bgColor), width: 120 }}
+          value={buf.bgColor}
+          onChange={onChange("bgColor")}
           type="text"
         />
       </div>
@@ -101,9 +160,7 @@ export let ConfigBox: FC = () => {
         onMouseLeave={() => {
           dispatch(["setApplyBtnHovered", false]);
         }}
-        onClick={() => {
-          repeatDispatch(["setCanvas", buf]);
-        }}
+        onClick={onApply}
         style={{
           border: "1px solid transparent",
           borderRadius: 4,
@@ -149,7 +206,14 @@ export let ConfigBox: FC = () => {
             formData.append(`detail-${idx}`, detailString(i));
           });
           formData.append("image-count", images.length + "");
-          formData.append("canvas", JSON.stringify({ w, h }));
+          formData.append(
+            "canvas",
+            JSON.stringify({
+              w,
+              h,
+              color: canvasColor.split(",").map(i => parseInt(i.trim()))
+            })
+          );
           axios({
             method: "post",
             url: "/api/image/repeatpattern",
@@ -162,6 +226,7 @@ export let ConfigBox: FC = () => {
             a.href = "data:image/jpeg;base64," + data;
             a.download = "repeat.jpeg";
             a.click();
+            a.remove();
           });
         }}
       >

@@ -10,6 +10,7 @@ import { ImageInfo, initEmptyImage } from "./images";
 type RepeatState = {
   images: ImageInfo[];
   canvasSize: { w: number; h: number };
+  canvasColor: string;
   active: number;
 };
 
@@ -26,7 +27,7 @@ type RepeatAction =
   | ["setRepeat", RepeatPayload]
   | ["removeImage", ImageInfo["id"]]
   | ["setActive", ImageInfo["id"]]
-  | ["setCanvas", RepeatState["canvasSize"]];
+  | ["setCanvas", Pick<RepeatState, "canvasSize" | "canvasColor">];
 
 type RepeatReducer = {
   (p: RepeatState, a: RepeatAction): RepeatState;
@@ -166,10 +167,7 @@ export let RepeatProvider: FC = ({ children }) => {
         case "setCanvas":
           return {
             ...state,
-            canvasSize: {
-              ...state.canvasSize,
-              ...(payload as RepeatState["canvasSize"])
-            }
+            ...(payload as RepeatState)
           };
         default:
           return state;
@@ -178,6 +176,7 @@ export let RepeatProvider: FC = ({ children }) => {
     {
       images: [initEmptyImage],
       canvasSize: { w: 1024, h: 1024 },
+      canvasColor: "255,255,255",
       active: initEmptyImage.id
     }
   );

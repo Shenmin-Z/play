@@ -29,8 +29,9 @@ type ImageInfo struct {
 }
 
 type Canvas struct {
-	W int
-	H int
+	W     int
+	H     int
+	Color [3]int
 }
 
 type point struct {
@@ -39,18 +40,23 @@ type point struct {
 }
 
 func Repeat(images []ImageInfo, canvas Canvas) image.Image {
-	cw, ch := canvas.W, canvas.H
+	cw, ch, bgColor := canvas.W, canvas.H, canvas.Color
 
 	dc := gg.NewContext(cw, ch)
 
 	dc.DrawRectangle(0, 0, float64(cw), float64(ch))
-	dc.SetRGB255(255, 255, 255)
+	dc.SetRGB255(bgColor[0], bgColor[1], bgColor[2])
 	dc.Fill()
 
 	for i := 0; i < len(images); i++ {
 		image := images[i]
+		bounds := image.Image.Bounds()
+		ow, oh := bounds.Max.X, bounds.Max.Y
+		resizedImage := image.Image
+		if image.Detail.W != ow && image.Detail.H != oh {
+			resizedImage = imaging.Resize(image.Image, image.Detail.W, image.Detail.H, imaging.Lanczos)
+		}
 		points := allPoints(image.Detail, canvas)
-		resizedImage := imaging.Resize(image.Image, image.Detail.W, image.Detail.H, imaging.Lanczos)
 		for j := 0; j < len(points); j++ {
 			ra, rb := points[j].x, points[j].y
 			px := image.Detail.X + ra*image.Detail.R1.X + rb*image.Detail.R2.X

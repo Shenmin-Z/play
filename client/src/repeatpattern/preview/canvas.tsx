@@ -6,7 +6,7 @@ import { usePreviewContext } from "./preview-context";
 export let Canvas: FC = () => {
   let { repeatState, repeatDispatch } = useRepeatContext();
   let { previewState } = usePreviewContext();
-  let { images, canvasSize, active: activeId } = repeatState;
+  let { images, canvasSize, canvasColor, active: activeId } = repeatState;
   let { w: width, h: height } = canvasSize;
   let { mode } = previewState;
 
@@ -46,7 +46,7 @@ export let Canvas: FC = () => {
         cursor,
         width,
         height,
-        backgroundColor: "#ffffff",
+        backgroundColor: `rgb(${canvasColor})`,
         backgroundSize: "50px 50px",
         backgroundImage:
           "radial-gradient(circle, rgb(110, 110, 110) 1px, rgba(0, 0, 0, 0) 1px)",

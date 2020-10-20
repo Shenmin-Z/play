@@ -71,6 +71,7 @@ export let Toolbar: FC = () => {
   return (
     <div
       style={{
+        marginTop: 10,
         height: SIZE,
         backgroundColor: BG,
         border: `10px solid ${BG}`,

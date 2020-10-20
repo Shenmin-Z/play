@@ -114,7 +114,7 @@ export let Image: FC<ImageInfo> = props => {
 
   useEffect(() => {
     dispatch(["setBuf", props]);
-  }, [props]);
+  }, [JSON.stringify(props)]);
 
   let inputRef = useRef<HTMLInputElement>();
 
@@ -167,65 +167,78 @@ export let Image: FC<ImageInfo> = props => {
         )}
       </div>
       <div>
-        <div style={formRow}>
-          <Field
-            label="Width"
-            value={buf.w}
-            onChange={v => dispatch(["setBuf", { ...buf, w: v }])}
+        <div style={{ display: "flex", alignItems: "stretch" }}>
+          <div>
+            <div style={formRow}>
+              <Field
+                label="Width"
+                value={buf.w}
+                onChange={v => dispatch(["setBuf", { ...buf, w: v }])}
+              />
+              <span style={{ width: 20 }} />
+              <Field
+                label="Height"
+                value={buf.h}
+                onChange={v => dispatch(["setBuf", { ...buf, h: v }])}
+              />
+            </div>
+            <div style={formRow}>
+              <Field
+                label="X"
+                value={buf.x}
+                onChange={v => dispatch(["setBuf", { ...buf, x: v }])}
+              />
+              <span style={{ width: 20 }} />
+              <Field
+                label="Y"
+                value={buf.y}
+                onChange={v => dispatch(["setBuf", { ...buf, y: v }])}
+              />
+            </div>
+          </div>
+          <div
+            style={{
+              width: 1,
+              backgroundColor: "rgb(231, 234, 237)",
+              margin: "0 20px"
+            }}
           />
-          <span style={{ width: 20 }} />
-          <Field
-            label="Height"
-            value={buf.h}
-            onChange={v => dispatch(["setBuf", { ...buf, h: v }])}
-          />
-        </div>
-        <div style={formRow}>
-          <Field
-            label="X"
-            value={buf.x}
-            onChange={v => dispatch(["setBuf", { ...buf, x: v }])}
-          />
-          <span style={{ width: 20 }} />
-          <Field
-            label="Y"
-            value={buf.y}
-            onChange={v => dispatch(["setBuf", { ...buf, y: v }])}
-          />
-        </div>
-        <div style={formRow}>
-          <Field
-            label="r1.x"
-            value={buf.r1?.x}
-            onChange={v =>
-              dispatch(["setBuf", { ...buf, r1: { ...buf.r1, x: v } }])
-            }
-          />
-          <span style={{ width: 20 }} />
-          <Field
-            label="r1.y"
-            value={buf.r1?.y}
-            onChange={v =>
-              dispatch(["setBuf", { ...buf, r1: { ...buf.r1, y: v } }])
-            }
-          />
-        </div>
-        <div style={formRow}>
-          <Field
-            label="r2.x"
-            value={buf.r2?.x}
-            onChange={v =>
-              dispatch(["setBuf", { ...buf, r2: { ...buf.r2, x: v } }])
-            }
-          />
-          <span style={{ width: 20 }} />
-          <Field
-            label="r2.y"
-            value={buf.r2?.y}
-            onChange={v =>
-              dispatch(["setBuf", { ...buf, r2: { ...buf.r2, y: v } }])
-            }
-          />
+          <div>
+            <div style={formRow}>
+              <Field
+                label="r1.x"
+                value={buf.r1?.x}
+                onChange={v =>
+                  dispatch(["setBuf", { ...buf, r1: { ...buf.r1, x: v } }])
+                }
+              />
+              <span style={{ width: 20 }} />
+              <Field
+                label="r1.y"
+                value={buf.r1?.y}
+                onChange={v =>
+                  dispatch(["setBuf", { ...buf, r1: { ...buf.r1, y: v } }])
+                }
+              />
+            </div>
+            <div style={formRow}>
+              <Field
+                label="r2.x"
+                value={buf.r2?.x}
+                onChange={v =>
+                  dispatch(["setBuf", { ...buf, r2: { ...buf.r2, x: v } }])
+                }
+              />
+              <span style={{ width: 20 }} />
+              <Field
+                label="r2.y"
+                value={buf.r2?.y}
+                onChange={v =>
+                  dispatch(["setBuf", { ...buf, r2: { ...buf.r2, y: v } }])
+                }
+              />
+            </div>
+          </div>
         </div>
         <div
           style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}

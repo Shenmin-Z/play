@@ -38,21 +38,8 @@ func generate() {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		opt := jpeg.Options{
-			Quality: 100,
-		}
-		buffer := new(bytes.Buffer)
-		if err = jpeg.Encode(buffer, img, &opt); err != nil {
-			http.Error(rw, "Failed To Process Image", http.StatusInternalServerError)
-			return
-		}
 
-		rw.Header().Set("Content-Type", "text/jpeg; charset=utf-8")
-		b64 := base64.StdEncoding.EncodeToString(buffer.Bytes())
-		rw.Header().Set("Content-Length", strconv.Itoa(len(b64)))
-		if _, err := rw.Write([]byte(b64)); err != nil {
-			log.Println("Unable to write image.")
-		}
+		b64Image(img, rw)
 	})
 
 	http.HandleFunc("/api/image/repeatpattern", func(rw http.ResponseWriter, r *http.Request) {
@@ -60,6 +47,8 @@ func generate() {
 			http.Error(rw, "Method Not Supported", http.StatusMethodNotAllowed)
 			return
 		}
+
+    // Parse parameters
 		count, err := strconv.Atoi(r.FormValue("image-count"))
 		if err != nil {
 			http.Error(rw, "Invalid count", http.StatusBadRequest)
@@ -93,21 +82,28 @@ func generate() {
 				Detail: detail,
 			}
 		}
-		img := draw.Repeat(images, canvas)
-		opt := jpeg.Options{
-			Quality: 100,
-		}
-		buffer := new(bytes.Buffer)
-		if err = jpeg.Encode(buffer, img, &opt); err != nil {
-			http.Error(rw, "Failed To Process Image", http.StatusInternalServerError)
-			return
-		}
 
-		rw.Header().Set("Content-Type", "text/jpeg; charset=utf-8")
-		b64 := base64.StdEncoding.EncodeToString(buffer.Bytes())
-		rw.Header().Set("Content-Length", strconv.Itoa(len(b64)))
-		if _, err := rw.Write([]byte(b64)); err != nil {
-			log.Println("Unable to write image.")
-		}
+		img := draw.Repeat(images, canvas)
+
+		b64Image(img, rw)
 	})
+}
+
+func b64Image(img image.Image, rw http.ResponseWriter) {
+	opt := jpeg.Options{
+		Quality: 100,
+	}
+
+	buffer := new(bytes.Buffer)
+	if err := jpeg.Encode(buffer, img, &opt); err != nil {
+		http.Error(rw, "Failed To Process Image", http.StatusInternalServerError)
+		return
+	}
+
+	rw.Header().Set("Content-Type", "text/jpeg; charset=utf-8")
+	b64 := base64.StdEncoding.EncodeToString(buffer.Bytes())
+	rw.Header().Set("Content-Length", strconv.Itoa(len(b64)))
+	if _, err := rw.Write([]byte(b64)); err != nil {
+		log.Println("Unable to write image.")
+	}
 }
