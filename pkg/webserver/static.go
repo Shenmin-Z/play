@@ -5,35 +5,17 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 )
 
 // Serve static files
 func static() {
-	files := make(map[string]struct{})
-
-	err := filepath.Walk("client/public", func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			log.Fatal(err)
-		}
-		if info.IsDir() {
-			return nil
-		}
-
-		files[path[len("client"):]] = struct{}{}
-		return nil
-	})
-
-	if err != nil {
-		panic(err)
-	}
 
 	http.HandleFunc("/public/", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "Method Not Supported", http.StatusMethodNotAllowed)
 			return
 		}
-		if _, ok := files[r.URL.Path]; !ok {
+		if _, err := os.Stat("client" + r.URL.Path); os.IsNotExist(err) {
 			http.Error(w, "File Not Exsit", http.StatusNotFound)
 			return
 		}

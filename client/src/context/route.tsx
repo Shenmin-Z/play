@@ -10,6 +10,7 @@ const ROUTE_MAP = {
   home: ["home"],
   "play-button": ["tools", "play-button"],
   "repeat-pattern": ["tools", "repeat-pattern"],
+  chat: ["tools", "chat"],
   about: ["about"]
 };
 
