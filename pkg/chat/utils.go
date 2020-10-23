@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-func pseudo_uuid() (uuid string) {
+func Pseudo_uuid() (uuid string) {
 	b := make([]byte, 4)
 
 	_, err := rand.Read(b)

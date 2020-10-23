@@ -126,7 +126,7 @@ func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	client := &Client{
-		id:   pseudo_uuid(),
+		id:   Pseudo_uuid(),
 		hub:  hub,
 		conn: conn,
 		send: make(chan Message),

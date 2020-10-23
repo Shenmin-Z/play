@@ -5,10 +5,15 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 )
 
 // Serve static files
 func static() {
+	appVersion, exist := os.LookupEnv("app_version")
+	if !exist {
+		appVersion = "development-mode"
+	}
 
 	http.HandleFunc("/public/", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
@@ -26,13 +31,20 @@ func static() {
 			log.Fatal(err)
 		}
 
+		if etag := r.Header.Get("If-None-Match"); strings.Contains(etag, appVersion) {
+			w.WriteHeader(http.StatusNotModified)
+			return
+		}
+		w.Header().Set("Etag", `"`+appVersion+`"`)
+
 		switch p := r.URL.Path; {
 		case endsWith(p, ".js"):
 			w.Header().Set("Content-Type", "text/javascript; charset=utf-8")
+			if !exist {
+				w.Header().Del("Etag")
+			}
 		case endsWith(p, ".css"):
 			w.Header().Set("Content-Type", "text/css; charset=utf-8")
-		case endsWith(p, ".jpg"):
-			w.Header().Set("Content-Type", "image/jpeg; charset=utf-8")
 		}
 
 		_, err = io.Copy(w, f)
@@ -42,11 +54,25 @@ func static() {
 	})
 
 	http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/" && r.URL.Path != "" {
+		path := r.URL.Path
+
+		var filePath string
+		if path == "/" || path == "" {
+			filePath = "client/public/index.html"
+		} else if strings.Contains(path, "favicon.ico") {
+			filePath = "client/public/favicon.png"
+		} else {
 			http.Error(rw, "Page Does Not Exsit", http.StatusNotFound)
 			return
 		}
-		f, err := os.Open("client/public/index.html")
+
+		if etag := r.Header.Get("If-None-Match"); strings.Contains(etag, appVersion) {
+			rw.WriteHeader(http.StatusNotModified)
+			return
+		}
+		rw.Header().Set("Etag", `"`+appVersion+`"`)
+
+		f, err := os.Open(filePath)
 		defer f.Close()
 		if err != nil {
 			log.Fatal(err)

@@ -1,23 +1,12 @@
 import React, { FC, useEffect, useState, useRef } from "react";
 import { Title } from "../common";
 import { ChatProvider } from "./chat-context";
-import { Message } from "./types";
 
 export let Chat: FC = () => {
   let [conn, setConn] = useState<WebSocket>(null);
   let [profile, setProfile] = useState(null);
 
   useEffect(() => {
-    let conn = new WebSocket("ws://" + document.location.host + "/chat-ws");
-    conn.onclose = () => {
-      console.log("Closed.");
-    };
-    conn.onmessage = evt => {
-      let messages: Message = JSON.parse(evt.data);
-      if (messages.kind === "ProfileUploaded") {
-        setProfile(messages.payload);
-      }
-    };
     setConn(conn);
   }, []);
 
