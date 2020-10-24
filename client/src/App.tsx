@@ -22,29 +22,31 @@ let Content: FC = () => {
   let [r0, r1] = useRouteContext();
 
   return (
-    <div>
-      <Header />
-      <div style={{ position: "relative", zIndex: 0 }}>
-        <div
-          style={{
-            margin: "40px auto 0px auto",
-            padding: "0 20px",
-            display: "flex",
-            flexDirection: "column"
-          }}
-        >
-          {r0 === "home" && <Home />}
-          {r0 === "about" && <About />}
-          {r0 === "tools" && (
-            <>
-              {r1 === "play-button" && <PlayButton />}
-              {r1 === "repeat-pattern" && <RepeatPattern />}
-              {r1 === "chat" && <Chat />}
-              <Menu />
-            </>
-          )}
+    <>
+      {r0 === "tools" && r1 === "chat" && <Chat />}
+      <div>
+        <Header />
+        <div style={{ position: "relative", zIndex: 0 }}>
+          <div
+            style={{
+              margin: "40px auto 0px auto",
+              padding: "0 20px",
+              display: "flex",
+              flexDirection: "column"
+            }}
+          >
+            {r0 === "home" && <Home />}
+            {r0 === "about" && <About />}
+            {r0 === "tools" && (
+              <>
+                {r1 === "play-button" && <PlayButton />}
+                {r1 === "repeat-pattern" && <RepeatPattern />}
+                <Menu />
+              </>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };

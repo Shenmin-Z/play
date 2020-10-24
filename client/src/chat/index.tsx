@@ -1,6 +1,12 @@
 import React, { FC, useEffect, useState, useRef } from "react";
-import { Title } from "../common";
-import { ChatProvider } from "./chat-context";
+import { ChatProvider, useChatContext } from "./chat-context";
+import { Header } from "./header";
+import { Footer } from "./footer";
+import { Chats } from "./chats";
+import { Contacts } from "./contacts";
+import { Discover } from "./discover";
+import { Me } from "./me";
+import { EditProfile } from "./edit-profile";
 
 export let Chat: FC = () => {
   let [conn, setConn] = useState<WebSocket>(null);
@@ -14,8 +20,20 @@ export let Chat: FC = () => {
 
   return (
     <ChatProvider>
-      <div>
-        <Title name="Chat" />
+      <div
+        style={{
+          position: "fixed",
+          width: "100vw",
+          height: "100vh",
+          backgroundColor: "#fff",
+          top: 0,
+          zIndex: 3,
+          font: `Arial, "微软雅黑"`
+        }}
+      >
+        <Route />
+        <div>
+          {/*
         <form
           onSubmit={() => {
             let msg = document.getElementById("msg") as HTMLInputElement;
@@ -46,7 +64,47 @@ export let Chat: FC = () => {
           }}
         />
         <img src={"/public/chat-profile/" + profile} />
+          */}
+        </div>
       </div>
     </ChatProvider>
+  );
+};
+
+let Route: FC = () => {
+  let { chatState } = useChatContext();
+  let { status } = chatState;
+
+  let content = null;
+  switch (status) {
+    case "chats":
+      content = <Chats />;
+      break;
+    case "discover":
+      content = <Discover />;
+      break;
+    case "contacts":
+      content = <Contacts />;
+      break;
+    case "me":
+      content = <Me />;
+      break;
+    case "my-profile":
+      content = <EditProfile />;
+      break;
+  }
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100vh"
+      }}
+    >
+      <Header />
+      <div style={{ flexGrow: 1 }}>{content}</div>
+      <Footer />
+    </div>
   );
 };

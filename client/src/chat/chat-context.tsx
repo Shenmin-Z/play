@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import { Message } from "./types";
 
-type ChatStatus =
+export type ChatStatus =
   | "chats"
   | "contacts"
   | "discover"
@@ -20,6 +20,7 @@ type ChatLanguage = "zh" | "en";
 type ChatState = {
   status: ChatStatus;
   lang: ChatLanguage;
+  en_zh: (en: string, zh: string) => string;
   wsConn: WebSocket;
 };
 
@@ -47,7 +48,11 @@ export let ChatProvider: FC = props => {
       let [type, payload] = action;
       switch (type) {
         case "setLang":
-          return { ...state, lang: payload as ChatLanguage };
+          return {
+            ...state,
+            lang: payload as ChatLanguage,
+            en_zh: (en, zh) => (payload === "en" ? en : zh)
+          };
         case "setStatus":
           return { ...state, status: payload as ChatStatus };
         case "setWsConn":
@@ -57,9 +62,10 @@ export let ChatProvider: FC = props => {
       }
     },
     {
-      status: "my-profile",
+      status: "me",
       lang: "en",
-      wsConn: null
+      wsConn: null,
+      en_zh: en => en
     }
   );
 
