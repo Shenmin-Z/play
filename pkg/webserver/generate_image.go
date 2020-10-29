@@ -48,7 +48,7 @@ func generate() {
 			return
 		}
 
-    // Parse parameters
+		// Parse parameters
 		count, err := strconv.Atoi(r.FormValue("image-count"))
 		if err != nil {
 			http.Error(rw, "Invalid count", http.StatusBadRequest)
@@ -90,12 +90,8 @@ func generate() {
 }
 
 func b64Image(img image.Image, rw http.ResponseWriter) {
-	opt := jpeg.Options{
-		Quality: 100,
-	}
-
 	buffer := new(bytes.Buffer)
-	if err := jpeg.Encode(buffer, img, &opt); err != nil {
+	if err := jpeg.Encode(buffer, img, nil); err != nil {
 		http.Error(rw, "Failed To Process Image", http.StatusInternalServerError)
 		return
 	}

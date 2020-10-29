@@ -9,14 +9,15 @@ import { Me } from "./me";
 import { EditProfile } from "./edit-profile";
 
 export let Chat: FC = () => {
-  let [conn, setConn] = useState<WebSocket>(null);
-  let [profile, setProfile] = useState(null);
-
   useEffect(() => {
-    setConn(conn);
+    let meta = document.querySelector("meta[name=viewport]");
+    if (!meta) return;
+    let previous = meta.getAttribute("content");
+    meta.setAttribute("content", previous + ", user-scalable=no");
+    return () => {
+      meta.setAttribute("content", previous);
+    };
   }, []);
-
-  let inputRef = useRef<HTMLInputElement>();
 
   return (
     <ChatProvider>
@@ -51,19 +52,6 @@ export let Chat: FC = () => {
           <input type="submit" value="Send" />
           <input type="text" id="msg" size={64} autoFocus />
         </form>
-        <input
-          ref={inputRef}
-          type="file"
-          accept=".jpg, .jpeg, .png"
-          onChange={() => {
-            let files = inputRef.current.files;
-            if (files.length === 1) {
-              conn.binaryType = "arraybuffer";
-              conn.send(files[0]);
-            }
-          }}
-        />
-        <img src={"/public/chat-profile/" + profile} />
           */}
         </div>
       </div>

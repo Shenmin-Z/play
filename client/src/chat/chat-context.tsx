@@ -6,7 +6,7 @@ import React, {
   useReducer,
   useEffect
 } from "react";
-import { Message } from "./types";
+import { Message, User, Conversation } from "./types";
 
 export type ChatStatus =
   | "chats"
@@ -22,12 +22,16 @@ type ChatState = {
   lang: ChatLanguage;
   en_zh: (en: string, zh: string) => string;
   wsConn: WebSocket;
+  self: User;
+  contacts: Map<string, User>;
+  conversations: Map<string, Conversation>;
 };
 
 type ChatAction =
   | ["setStatus", ChatStatus]
   | ["setLang", ChatLanguage]
-  | ["setWsConn", WebSocket];
+  | ["setWsConn", WebSocket]
+  | ["setSelf", Partial<User>];
 
 type ChatReducer = {
   (p: ChatState, a: ChatAction): ChatState;
@@ -57,15 +61,20 @@ export let ChatProvider: FC = props => {
           return { ...state, status: payload as ChatStatus };
         case "setWsConn":
           return { ...state, wsConn: payload as WebSocket };
+        case "setSelf":
+          return { ...state, self: { ...state.self, ...(payload as User) } };
         default:
           return state;
       }
     },
     {
-      status: "me",
+      status: "my-profile",
       lang: "en",
       wsConn: null,
-      en_zh: en => en
+      self: { id: null, name: null, hasProfile: false },
+      en_zh: en => en,
+      contacts: new Map(),
+      conversations: new Map()
     }
   );
 
@@ -85,15 +94,22 @@ export let ChatProvider: FC = props => {
       } else {
         console.log("Connection lost, trying...");
         setTimeout(() => {
-          connect(true);
+          connect(false);
         }, 2000);
       }
       chatDispatch(["setWsConn", null]);
     };
     conn.onmessage = e => {
-      let messages: Message = JSON.parse(e.data);
-      if (messages.kind === "ProfileUploaded") {
-        //setProfile(messages.payload);
+      let message: Message = JSON.parse(e.data);
+      switch (message.kind) {
+        case "ProfileUploaded": {
+          chatDispatch(["setSelf", { hasProfile: true }]);
+          break;
+        }
+        case "ClientCreated": {
+          chatDispatch(["setSelf", { id: message.payload }]);
+          break;
+        }
       }
     };
   }, []);

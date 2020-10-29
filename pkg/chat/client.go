@@ -41,6 +41,14 @@ func (c *Client) readPump() {
 		return nil
 	})
 
+	c.hub.broadcast <- BroadCast{
+		Targets: []string{c.id},
+		Message: Message{
+			Kind:    "ClientCreated",
+			Payload: c.id,
+		},
+	}
+
 	for {
 		messageType, message, err := c.conn.ReadMessage()
 		if err != nil {
@@ -51,15 +59,21 @@ func (c *Client) readPump() {
 		}
 
 		if messageType == websocket.BinaryMessage {
-			writeImage(c.id, message)
-			c.hub.broadcast <- BroadCast{
-				Targets: []string{c.id},
-				Message: Message{
-					Kind:    "ProfileUploaded",
-					Payload: c.id,
-				},
+			if message[0] == 1 {
+				// first byte is type: 1 means UPLOAD_AND_CROP
+				// when type is 1: the next 4*2 bytes are (x,y,w,h), the rest is file
+				err := writeImage(c.id, message[1:])
+				if err != nil {
+					fmt.Println(err)
+				}
+				c.hub.broadcast <- BroadCast{
+					Targets: []string{c.id},
+					Message: Message{
+						Kind: "ProfileUploaded",
+					},
+				}
+				continue
 			}
-			continue
 		}
 
 		incoming := Message{}

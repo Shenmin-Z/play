@@ -19,7 +19,30 @@
 // New message:
 // clientId, Message
 
-export type Message = {
-  kind: "ProfileUploaded";
-  payload: string;
+export type Message =
+  | {
+      kind: "ProfileUploaded";
+    }
+  | {
+      kind: "ClientCreated";
+      payload: string;
+    };
+
+export type User = {
+  id: string;
+  name: string;
+  hasProfile: boolean;
+};
+
+export type ChatMessage = {
+  user: User;
+  text: string;
+  timestamp: number;
+};
+
+export type Conversation = {
+  id: string;
+  name: string;
+  users: User[];
+  history: ChatMessage[];
 };

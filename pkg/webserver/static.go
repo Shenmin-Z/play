@@ -43,6 +43,8 @@ func static() {
 			if !exist {
 				w.Header().Del("Etag")
 			}
+		case endsWith(p, ".map"):
+			w.Header().Del("Etag")
 		case endsWith(p, ".css"):
 			w.Header().Set("Content-Type", "text/css; charset=utf-8")
 		}
