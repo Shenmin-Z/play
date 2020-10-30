@@ -7,9 +7,14 @@ import { ImageCrop } from "./crop";
 type State = {
   imgFile: File;
   showCrop: boolean;
+  editName: boolean;
+  nameBuffer: string;
 };
 
-type Action = ["setImgFile", File];
+type Action =
+  | ["setImgFile", File]
+  | ["toggleEditName"]
+  | ["setNameBuffer", string];
 
 type Reducer = {
   (s: State, a: Action): State;
@@ -17,7 +22,7 @@ type Reducer = {
 
 export let EditProfile: FC = () => {
   let { chatState } = useChatContext();
-  let { en_zh, wsConn } = chatState;
+  let { en_zh, wsConn, wsJsonSender, self } = chatState;
 
   let inputRef = useRef<HTMLInputElement>();
 
@@ -27,12 +32,18 @@ export let EditProfile: FC = () => {
       switch (type) {
         case "setImgFile":
           return { ...state, imgFile: payload as File };
+        case "toggleEditName":
+          return { ...state, editName: !state.editName };
+        case "setNameBuffer":
+          return { ...state, nameBuffer: payload as string };
         default:
           return state;
       }
     },
-    { imgFile: null, showCrop: false }
+    { imgFile: null, showCrop: false, editName: false, nameBuffer: "" }
   );
+
+  let { imgFile, editName, nameBuffer } = state;
 
   return (
     <>
@@ -48,12 +59,37 @@ export let EditProfile: FC = () => {
           />
           <Row
             text={en_zh("Name", "昵称")}
-            addtional={<div style={{ color: TEXT_GRAY }}>Name Here</div>}
+            addtional={
+              editName ? (
+                <input
+                  type="text"
+                  autoFocus
+                  style={{ outline: "none", borderWidth: 0, width: 80 }}
+                  value={nameBuffer}
+                  onChange={({ target }) => {
+                    dispath(["setNameBuffer", target.value]);
+                  }}
+                  onBlur={() => {
+                    dispath(["toggleEditName"]);
+                    wsJsonSender({ kind: "UpdateName", payload: nameBuffer });
+                  }}
+                />
+              ) : (
+                <div
+                  onClick={() => {
+                    dispath(["toggleEditName"]);
+                  }}
+                  style={{ color: TEXT_GRAY }}
+                >
+                  {self.name || self.id}
+                </div>
+              )
+            }
             rightArrow={true}
           />
           <Row
             text={en_zh("ID", "ID")}
-            addtional={<div style={{ color: TEXT_GRAY }}>xx-xxx-xxx</div>}
+            addtional={<div style={{ color: TEXT_GRAY }}>{self.id}</div>}
             rightArrow={true}
           />
         </RowGroup>
@@ -70,12 +106,12 @@ export let EditProfile: FC = () => {
           }}
         />
       </div>
-      {state.imgFile && (
+      {imgFile && (
         <ImageCrop
-          file={state.imgFile}
+          file={imgFile}
           onOk={async r => {
             try {
-              let data = await assembleBinary(r, state.imgFile);
+              let data = await assembleBinary(r, imgFile);
               wsConn.binaryType = "arraybuffer";
               wsConn.send(data);
               dispath(["setImgFile", null]);

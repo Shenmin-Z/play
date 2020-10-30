@@ -2,28 +2,13 @@ package chat
 
 import (
 	"bytes"
-	"crypto/rand"
 	"encoding/binary"
-	"fmt"
 	"image"
 	"image/jpeg"
 	"os"
 
 	"github.com/disintegration/imaging"
 )
-
-func Pseudo_uuid() (uuid string) {
-	b := make([]byte, 4)
-
-	_, err := rand.Read(b)
-	if err != nil {
-		fmt.Println("Error: ", err)
-		return
-	}
-
-	uuid = fmt.Sprintf("%x-%x", b[0:2], b[2:])
-	return
-}
 
 const path = "client/public/chat-profile"
 

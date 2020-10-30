@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState, useRef } from "react";
+import React, { FC, useEffect, ReactElement } from "react";
 import { ChatProvider, useChatContext } from "./chat-context";
 import { Header } from "./header";
 import { Footer } from "./footer";
@@ -33,27 +33,6 @@ export let Chat: FC = () => {
         }}
       >
         <Route />
-        <div>
-          {/*
-        <form
-          onSubmit={() => {
-            let msg = document.getElementById("msg") as HTMLInputElement;
-            if (!conn) {
-              return false;
-            }
-            if (!msg.value) {
-              return false;
-            }
-            conn.send(JSON.stringify({ kind: "aaa", payload: msg.value }));
-            msg.value = "";
-            return false;
-          }}
-        >
-          <input type="submit" value="Send" />
-          <input type="text" id="msg" size={64} autoFocus />
-        </form>
-          */}
-        </div>
       </div>
     </ChatProvider>
   );
@@ -63,24 +42,9 @@ let Route: FC = () => {
   let { chatState } = useChatContext();
   let { status } = chatState;
 
-  let content = null;
-  switch (status) {
-    case "chats":
-      content = <Chats />;
-      break;
-    case "discover":
-      content = <Discover />;
-      break;
-    case "contacts":
-      content = <Contacts />;
-      break;
-    case "me":
-      content = <Me />;
-      break;
-    case "my-profile":
-      content = <EditProfile />;
-      break;
-  }
+  let display = (show: boolean, elm: ReactElement) => (
+    <div style={{ display: show ? "block" : "none", flexGrow: 1 }}>{elm}</div>
+  );
 
   return (
     <div
@@ -91,7 +55,11 @@ let Route: FC = () => {
       }}
     >
       <Header />
-      <div style={{ flexGrow: 1 }}>{content}</div>
+      {display(status === "chats", <Chats />)}
+      {display(status === "discover", <Discover />)}
+      {display(status === "contacts", <Contacts />)}
+      {display(status === "me", <Me />)}
+      {display(status === "my-profile", <EditProfile />)}
       <Footer />
     </div>
   );

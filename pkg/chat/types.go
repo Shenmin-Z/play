@@ -1,8 +1,8 @@
 package chat
 
 type Message struct {
-	Kind    string `json:"kind"`
-	Payload string `json:"payload"`
+	Kind    string      `json:"kind"`
+	Payload interface{} `json:"payload"`
 }
 
 type BroadCast struct {

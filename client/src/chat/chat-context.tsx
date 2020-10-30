@@ -6,7 +6,7 @@ import React, {
   useReducer,
   useEffect
 } from "react";
-import { Message, User, Conversation } from "./types";
+import { IncomingMessage, OutgoingMessage, User, Conversation } from "./types";
 
 export type ChatStatus =
   | "chats"
@@ -22,6 +22,7 @@ type ChatState = {
   lang: ChatLanguage;
   en_zh: (en: string, zh: string) => string;
   wsConn: WebSocket;
+  wsJsonSender: (m: OutgoingMessage) => void;
   self: User;
   contacts: Map<string, User>;
   conversations: Map<string, Conversation>;
@@ -60,7 +61,13 @@ export let ChatProvider: FC = props => {
         case "setStatus":
           return { ...state, status: payload as ChatStatus };
         case "setWsConn":
-          return { ...state, wsConn: payload as WebSocket };
+          return {
+            ...state,
+            wsConn: payload as WebSocket,
+            wsJsonSender: m => {
+              (payload as WebSocket).send(JSON.stringify(m));
+            }
+          };
         case "setSelf":
           return { ...state, self: { ...state.self, ...(payload as User) } };
         default:
@@ -71,6 +78,7 @@ export let ChatProvider: FC = props => {
       status: "my-profile",
       lang: "en",
       wsConn: null,
+      wsJsonSender: null,
       self: { id: null, name: null, hasProfile: false },
       en_zh: en => en,
       contacts: new Map(),
@@ -78,29 +86,30 @@ export let ChatProvider: FC = props => {
     }
   );
 
-  useEffect(function connect(retry = true) {
+  useEffect(function connect(retry = 5) {
     let protocol = location.protocol === "https:" ? "wss" : "ws";
     let conn = new WebSocket(
       `${protocol}://` + document.location.host + "/chat-ws"
     );
     conn.onopen = () => {
       console.log("WS Connected.");
-      retry = true;
+      retry = 5;
       chatDispatch(["setWsConn", conn]);
     };
     conn.onclose = () => {
-      if (!retry) {
+      if (retry < 1) {
         console.log("Connection lost.");
       } else {
-        console.log("Connection lost, trying...");
+        let delay = Math.pow(2, 6 - retry);
+        console.log(`Connection lost, retrying in ${delay} seconds...`);
         setTimeout(() => {
-          connect(false);
-        }, 2000);
+          connect(retry - 1);
+        }, delay * 1000);
       }
       chatDispatch(["setWsConn", null]);
     };
     conn.onmessage = e => {
-      let message: Message = JSON.parse(e.data);
+      let message: IncomingMessage = JSON.parse(e.data);
       switch (message.kind) {
         case "ProfileUploaded": {
           chatDispatch(["setSelf", { hasProfile: true }]);
@@ -108,6 +117,10 @@ export let ChatProvider: FC = props => {
         }
         case "ClientCreated": {
           chatDispatch(["setSelf", { id: message.payload }]);
+          break;
+        }
+        case "NameUpdated": {
+          chatDispatch(["setSelf", { name: message.payload }]);
           break;
         }
       }

@@ -6,7 +6,7 @@ import { useChatContext } from "./chat-context";
 
 export let Me: FC = () => {
   let { chatDispatch, chatState } = useChatContext();
-  let { en_zh, lang } = chatState;
+  let { en_zh, lang, self } = chatState;
 
   return (
     <div style={{ backgroundColor: BG_GRAY, height: "100%" }}>
@@ -32,10 +32,12 @@ export let Me: FC = () => {
           }}
         >
           <div style={{ color: TEXT_BLACK, fontSize: "20px", fontWeight: 600 }}>
-            Name
+            {self.name || self.id}
           </div>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <div style={{ color: TEXT_GRAY, fontSize: "15px" }}>ID: xxxx</div>
+            <div style={{ color: TEXT_GRAY, fontSize: "15px" }}>
+              ID: {self.id}
+            </div>
             <RightArrow width={6} />
           </div>
         </div>

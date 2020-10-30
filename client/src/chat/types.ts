@@ -19,14 +19,20 @@
 // New message:
 // clientId, Message
 
-export type Message =
+export type IncomingMessage =
   | {
       kind: "ProfileUploaded";
     }
   | {
       kind: "ClientCreated";
       payload: string;
+    }
+  | {
+      kind: "NameUpdated";
+      payload: string;
     };
+
+export type OutgoingMessage = { kind: "UpdateName"; payload: string };
 
 export type User = {
   id: string;
