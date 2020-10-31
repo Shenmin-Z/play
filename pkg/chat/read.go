@@ -32,13 +32,15 @@ func (c *Client) read() {
 			if message[0] == 1 {
 				// first byte is type: 1 means UPLOAD_AND_CROP
 				// when type is 1: the next 4*2 bytes are (x,y,w,h), the rest is file
-				err := writeImage(c.id, message[1:])
+				err := writeImage(c.Id, message[1:])
 				if err != nil {
 					fmt.Printf("error: %v", err)
 				}
 				c.send <- Message{
 					Kind: "ProfileUploaded",
 				}
+				c.notify()
+				c.Profile = true
 				continue
 			}
 		}
@@ -54,11 +56,26 @@ func (c *Client) read() {
 			if !err {
 				continue
 			}
-			c.name = name
+			c.Name = name
 			c.send <- Message{
 				Kind:    "NameUpdated",
-				Payload: c.name,
+				Payload: c.Name,
+			}
+			c.notify()
+		case "GetClientList":
+			c.send <- Message{
+				Kind:    "ClientList",
+				Payload: c.hub.clientList(),
 			}
 		}
+	}
+}
+
+func (c *Client) notify() {
+	c.hub.broadcast <- BroadCast{
+		Targets: []string{},
+		Message: Message{
+			Kind: "ClientUpdateNotification",
+		},
 	}
 }

@@ -26,13 +26,17 @@ type ChatState = {
   self: User;
   contacts: Map<string, User>;
   conversations: Map<string, Conversation>;
+  hasUpdate: boolean;
 };
 
 type ChatAction =
   | ["setStatus", ChatStatus]
   | ["setLang", ChatLanguage]
   | ["setWsConn", WebSocket]
-  | ["setSelf", Partial<User>];
+  | ["setSelf", Partial<User>]
+  | ["setContacts", User[]]
+  | ["setClientUpdateNotification"]
+  | ["clearClientUpdateNotification"];
 
 type ChatReducer = {
   (p: ChatState, a: ChatAction): ChatState;
@@ -70,6 +74,18 @@ export let ChatProvider: FC = props => {
           };
         case "setSelf":
           return { ...state, self: { ...state.self, ...(payload as User) } };
+        case "setContacts": {
+          let clients = payload as User[];
+          let map = new Map<string, User>();
+          clients.forEach(c => {
+            map.set(c.id, c);
+          });
+          return { ...state, contacts: map };
+        }
+        case "setClientUpdateNotification":
+          return { ...state, hasUpdate: true };
+        case "clearClientUpdateNotification":
+          return { ...state, hasUpdate: false };
         default:
           return state;
       }
@@ -79,10 +95,11 @@ export let ChatProvider: FC = props => {
       lang: "en",
       wsConn: null,
       wsJsonSender: null,
-      self: { id: null, name: null, hasProfile: false },
+      self: { id: null, name: null, profile: false },
       en_zh: en => en,
       contacts: new Map(),
-      conversations: new Map()
+      conversations: new Map(),
+      hasUpdate: false
     }
   );
 
@@ -112,15 +129,23 @@ export let ChatProvider: FC = props => {
       let message: IncomingMessage = JSON.parse(e.data);
       switch (message.kind) {
         case "ProfileUploaded": {
-          chatDispatch(["setSelf", { hasProfile: true }]);
+          chatDispatch(["setSelf", { profile: true }]);
           break;
         }
         case "ClientCreated": {
-          chatDispatch(["setSelf", { id: message.payload }]);
+          chatDispatch(["setSelf", message.payload]);
           break;
         }
         case "NameUpdated": {
           chatDispatch(["setSelf", { name: message.payload }]);
+          break;
+        }
+        case "ClientList": {
+          chatDispatch(["setContacts", message.payload]);
+          break;
+        }
+        case "ClientUpdateNotification": {
+          chatDispatch(["setClientUpdateNotification"]);
           break;
         }
       }

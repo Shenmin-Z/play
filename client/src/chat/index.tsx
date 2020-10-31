@@ -1,4 +1,4 @@
-import React, { FC, useEffect, ReactElement } from "react";
+import React, { FC, useEffect, ReactElement, useRef } from "react";
 import { ChatProvider, useChatContext } from "./chat-context";
 import { Header } from "./header";
 import { Footer } from "./footer";
@@ -39,8 +39,27 @@ export let Chat: FC = () => {
 };
 
 let Route: FC = () => {
-  let { chatState } = useChatContext();
-  let { status } = chatState;
+  let { chatState, chatDispatch } = useChatContext();
+  let { status, wsJsonSender, hasUpdate } = chatState;
+
+  let statusRef = useRef(status);
+  statusRef.current = status;
+
+  useEffect(() => {
+    switch (status) {
+      case "contacts": {
+        wsJsonSender({ kind: "GetClientList" });
+        chatDispatch(["clearClientUpdateNotification"]);
+      }
+    }
+  }, [status]);
+
+  useEffect(() => {
+    if (statusRef.current === "contacts" && hasUpdate) {
+      wsJsonSender({ kind: "GetClientList" });
+      chatDispatch(["clearClientUpdateNotification"]);
+    }
+  }, [hasUpdate]);
 
   let display = (show: boolean, elm: ReactElement) => (
     <div style={{ display: show ? "block" : "none", flexGrow: 1 }}>{elm}</div>

@@ -1,4 +1,4 @@
-import React, { FC, useRef, useReducer } from "react";
+import React, { FC, useRef, useReducer, useEffect } from "react";
 import { useChatContext } from "./chat-context";
 import { Row, RowGroup, ProfileImage } from "./common";
 import { BG_GRAY, TEXT_GRAY } from "./colors";
@@ -43,6 +43,10 @@ export let EditProfile: FC = () => {
     { imgFile: null, showCrop: false, editName: false, nameBuffer: "" }
   );
 
+  useEffect(() => {
+    dispath(["setNameBuffer", self.name]);
+  }, [self.name]);
+
   let { imgFile, editName, nameBuffer } = state;
 
   return (
@@ -71,7 +75,9 @@ export let EditProfile: FC = () => {
                   }}
                   onBlur={() => {
                     dispath(["toggleEditName"]);
-                    wsJsonSender({ kind: "UpdateName", payload: nameBuffer });
+                    if (nameBuffer !== self.name) {
+                      wsJsonSender({ kind: "UpdateName", payload: nameBuffer });
+                    }
                   }}
                 />
               ) : (

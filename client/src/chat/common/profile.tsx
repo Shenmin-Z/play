@@ -1,5 +1,6 @@
 import React, { FC } from "react";
 import { useChatContext } from "../chat-context";
+import { User } from "../types";
 
 export let ProfileImage: FC = () => {
   let { chatState } = useChatContext();
@@ -7,17 +8,15 @@ export let ProfileImage: FC = () => {
 
   return (
     <div style={{ margin: "5px 0" }}>
-      <img
-        height={60}
-        src={
-          self.hasProfile
-            ? `/public/chat-profile/${self.id}`
-            : "/public/chat-images/pet_cat_oddeye_black.png"
-        }
-      />
+      <img height={60} src={imageSrc(self)} />
     </div>
   );
 };
+
+export let imageSrc = (user: User) =>
+  user.profile
+    ? `/public/chat-profile/${user.id}`
+    : "/public/chat-images/pet_cat_oddeye_black.png";
 
 export let ProfileImageOther: FC<{ src: string }> = ({ src }) => {
   return (

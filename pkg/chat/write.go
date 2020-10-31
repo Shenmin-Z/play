@@ -37,7 +37,7 @@ func (c *Client) write() {
 
 	flush(Message{
 		Kind:    "ClientCreated",
-		Payload: c.id,
+		Payload: c,
 	})
 
 out:

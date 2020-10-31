@@ -25,19 +25,26 @@ export type IncomingMessage =
     }
   | {
       kind: "ClientCreated";
-      payload: string;
+      payload: User;
     }
   | {
       kind: "NameUpdated";
       payload: string;
-    };
+    }
+  | {
+      kind: "ClientList";
+      payload: User[];
+    }
+  | { kind: "ClientUpdateNotification" };
 
-export type OutgoingMessage = { kind: "UpdateName"; payload: string };
+export type OutgoingMessage =
+  | { kind: "UpdateName"; payload: string }
+  | { kind: "GetClientList" };
 
 export type User = {
   id: string;
   name: string;
-  hasProfile: boolean;
+  profile: boolean;
 };
 
 export type ChatMessage = {
