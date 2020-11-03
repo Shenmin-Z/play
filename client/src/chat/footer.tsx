@@ -1,6 +1,7 @@
 import React, { FC } from "react";
 import { useChatContext, ChatStatus } from "./chat-context";
 import { FOOTER } from "./colors";
+import { Chats, Contacts, Discover, Me } from "./svg";
 
 export let Footer: FC = () => {
   let { chatState } = useChatContext();
@@ -42,6 +43,8 @@ type Props = {
   en: string;
 };
 
+const W = 26;
+
 let Icon: FC<Props> = ({ type, zh, en }) => {
   let { chatState, chatDispatch } = useChatContext();
   let { en_zh, status } = chatState;
@@ -50,11 +53,34 @@ let Icon: FC<Props> = ({ type, zh, en }) => {
     chatDispatch(["setStatus", s]);
   };
 
+  let active = status === type;
+
+  let icon = (() => {
+    switch (type) {
+      case "chats":
+        return <Chats width={W} highlight={active} />;
+      case "contacts":
+        return <Contacts width={W} highlight={active} />;
+      case "discover":
+        return <Discover width={W} highlight={active} />;
+      case "me":
+        return <Me width={W} highlight={active} />;
+      default:
+        return null;
+    }
+  })();
+
   return (
     <div
-      style={{ color: status === type ? FOOTER : "#000" }}
+      style={{
+        color: active ? FOOTER : "#000",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center"
+      }}
       onClick={createClick(type)}
     >
+      {icon}
       {en_zh(en, zh)}
     </div>
   );

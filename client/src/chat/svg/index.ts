@@ -4,3 +4,7 @@ export * from "./more";
 export * from "./wifi";
 export * from "./smile";
 export * from "./add";
+export * from "./chats";
+export * from "./contacts";
+export * from "./discover";
+export * from "./me";

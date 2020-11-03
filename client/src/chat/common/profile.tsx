@@ -21,7 +21,10 @@ export let imageSrc = (user: User) =>
 export let ProfileImageOther: FC<{ src: string }> = ({ src }) => {
   return (
     <div style={{ margin: "5px 0 5px 20px" }}>
-      <img style={{ maxWidth: 40, height: 40 }} src={src} />
+      <img
+        style={{ maxWidth: 40, height: 40, borderRadius: "5px" }}
+        src={src}
+      />
     </div>
   );
 };

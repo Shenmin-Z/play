@@ -92,7 +92,15 @@ export let ChatRow: FC<ChatRowProps> = ({ img, title, latest, time }) => {
         paddingLeft: 20
       }}
     >
-      <img src={img} style={{ maxWidth: 40, height: 40, margin: "10px 0" }} />
+      <img
+        src={img}
+        style={{
+          maxWidth: 40,
+          height: 40,
+          margin: "10px 0",
+          borderRadius: "5px"
+        }}
+      />
       <div
         style={{
           flexGrow: 1,
