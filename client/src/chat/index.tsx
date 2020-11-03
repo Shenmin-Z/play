@@ -2,6 +2,7 @@ import React, { FC, useEffect, ReactElement, useRef } from "react";
 import { ChatProvider, useChatContext } from "./chat-context";
 import { Header } from "./header";
 import { Footer } from "./footer";
+import { Conversation } from "./conversation";
 import { Chats } from "./chats";
 import { Contacts } from "./contacts";
 import { Discover } from "./discover";
@@ -74,6 +75,7 @@ let Route: FC = () => {
       }}
     >
       <Header />
+      {display(status === "conversation", <Conversation />)}
       {display(status === "chats", <Chats />)}
       {display(status === "discover", <Discover />)}
       {display(status === "contacts", <Contacts />)}

@@ -63,9 +63,15 @@ func (c *Client) read() {
 			}
 			c.notify()
 		case "GetClientList":
+			clients := make([]*Client, len(c.hub.clients))
+			idx := 0
+			for c := range c.hub.clients {
+				clients[idx] = c
+				idx++
+			}
 			c.send <- Message{
 				Kind:    "ClientList",
-				Payload: c.hub.clientList(),
+				Payload: clients,
 			}
 		}
 	}

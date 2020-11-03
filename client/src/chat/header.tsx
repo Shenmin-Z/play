@@ -1,17 +1,37 @@
 import React, { FC } from "react";
 import { useChatContext } from "./chat-context";
 import { BG_GRAY } from "./colors";
-import { LeftArrow } from "./svg";
+import { LeftArrow, More } from "./svg";
 
 export let Header: FC = () => {
   let { chatState, chatDispatch } = useChatContext();
-  let { status, en_zh } = chatState;
+  let { status, en_zh, currentConversation } = chatState;
 
   let text = null;
   let hasArrow = false;
   let onClick = () => {};
 
   switch (status) {
+    case "conversation":
+      text = (
+        <div
+          style={{
+            flexGrow: 1,
+            marginRight: 20,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between"
+          }}
+        >
+          {currentConversation.name}
+          <More width={15} onClick={() => {}} />
+        </div>
+      );
+      hasArrow = true;
+      onClick = () => {
+        chatDispatch(["setStatus", "chats"]);
+      };
+      break;
     case "chats":
       text = en_zh("Chats", "聊天");
       break;
@@ -41,7 +61,8 @@ export let Header: FC = () => {
         fontWeight: 500,
         display: "flex",
         alignItems: "center",
-        paddingLeft: 20
+        paddingLeft: 20,
+        borderBottom: "1px solid #E9E9E9"
       }}
     >
       {hasArrow && (

@@ -26,6 +26,7 @@ type ChatState = {
   self: User;
   contacts: Map<string, User>;
   conversations: Map<string, Conversation>;
+  currentConversation: Conversation;
   hasUpdate: boolean;
 };
 
@@ -91,7 +92,7 @@ export let ChatProvider: FC = props => {
       }
     },
     {
-      status: "my-profile",
+      status: "conversation",
       lang: "en",
       wsConn: null,
       wsJsonSender: null,
@@ -99,6 +100,7 @@ export let ChatProvider: FC = props => {
       en_zh: en => en,
       contacts: new Map(),
       conversations: new Map(),
+      currentConversation: { id: "", name: "aaaa bbb", users: [], history: [] },
       hasUpdate: false
     }
   );

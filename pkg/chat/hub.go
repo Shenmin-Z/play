@@ -61,23 +61,3 @@ func (h *Hub) run() {
 		}
 	}
 }
-
-type SimpleClient struct {
-	Id      string `json:"id"`
-	Name    string `json:"name"`
-	Profile bool   `json:"profile"`
-}
-
-func (h *Hub) clientList() []SimpleClient {
-	clients := make([]SimpleClient, len(h.clients))
-	i := 0
-	for c := range h.clients {
-		clients[i] = SimpleClient{
-			Id:      c.Id,
-			Name:    c.Name,
-			Profile: c.Profile,
-		}
-		i++
-	}
-	return clients
-}
