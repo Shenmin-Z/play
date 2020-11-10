@@ -61,7 +61,7 @@ export let Header: FC = () => {
         fontWeight: 500,
         display: "flex",
         alignItems: "center",
-        paddingLeft: 20,
+        paddingLeft: status === "conversation" ? 10 : 20,
         borderBottom: "1px solid #E9E9E9"
       }}
     >
