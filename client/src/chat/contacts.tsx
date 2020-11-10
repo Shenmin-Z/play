@@ -6,7 +6,7 @@ import { useChatContext } from "./chat-context";
 
 export let Contacts: FC = () => {
   let { chatState } = useChatContext();
-  let { contacts } = chatState;
+  let { contacts, wsJsonSender, self } = chatState;
 
   return (
     <div style={{ backgroundColor: BG_GRAY, height: "100%" }}>
@@ -16,6 +16,16 @@ export let Contacts: FC = () => {
             key={c.id}
             text={c.name}
             image={<ProfileImageOther src={imageSrc(c)} />}
+            onClick={() => {
+              if (c.id === self.id) return;
+              wsJsonSender({
+                kind: "CreateConversation",
+                payload: {
+                  name: "",
+                  users: [self.id, c.id]
+                }
+              });
+            }}
           />
         ))}
       </RowGroup>

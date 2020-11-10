@@ -6,8 +6,9 @@ import (
 
 func ChatWS() {
 	hub := newHub()
+	conMap := newConMap()
 	go hub.run()
 	http.HandleFunc("/chat-ws", func(w http.ResponseWriter, r *http.Request) {
-		serveWs(hub, w, r)
+		serveWs(hub, conMap, w, r)
 	})
 }

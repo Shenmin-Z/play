@@ -5,14 +5,18 @@ import { LeftArrow, More } from "./svg";
 
 export let Header: FC = () => {
   let { chatState, chatDispatch } = useChatContext();
-  let { status, en_zh, currentConversation } = chatState;
+  let { status, en_zh, currentConversation, self } = chatState;
 
   let text = null;
   let hasArrow = false;
   let onClick = () => {};
 
   switch (status) {
-    case "conversation":
+    case "conversation": {
+      let { name, users } = currentConversation;
+      if (!name) {
+        name = (users || []).find(i => i.id !== self.id).name;
+      }
       text = (
         <div
           style={{
@@ -23,7 +27,7 @@ export let Header: FC = () => {
             justifyContent: "space-between"
           }}
         >
-          {currentConversation.name}
+          {name}
           <More width={15} onClick={() => {}} />
         </div>
       );
@@ -32,6 +36,7 @@ export let Header: FC = () => {
         chatDispatch(["setStatus", "chats"]);
       };
       break;
+    }
     case "chats":
       text = en_zh("Chats", "聊天");
       break;

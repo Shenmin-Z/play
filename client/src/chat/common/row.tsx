@@ -78,11 +78,19 @@ type ChatRowProps = {
   title: string;
   latest: string;
   time: string;
+  onClick?: () => void;
 };
 
-export let ChatRow: FC<ChatRowProps> = ({ img, title, latest, time }) => {
+export let ChatRow: FC<ChatRowProps> = ({
+  img,
+  title,
+  latest,
+  time,
+  onClick
+}) => {
   return (
     <div
+      onClick={onClick || (() => {})}
       style={{
         backgroundColor: "#fff",
         display: "flex",

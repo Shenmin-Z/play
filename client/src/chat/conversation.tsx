@@ -1,7 +1,7 @@
 import React, { FC, useReducer, Reducer } from "react";
 import { useChatContext } from "./chat-context";
 import { BG_GRAY, BG_WHITE, TEXT_GRAY } from "./colors";
-import { imageSrc } from "./common";
+import { imageSrc, formatTime } from "./common";
 import { Wifi, Smile, Add } from "./svg";
 import { ChatMessage } from "./types";
 
@@ -127,19 +127,7 @@ let ChatSingle: FC<ChatProps> = ({ content, showTime }) => {
   let { chatState } = useChatContext();
   let { en_zh, self } = chatState;
   let isSelf = self.id === user.id;
-
-  let time = (() => {
-    let time = new Date(timestamp);
-    let hours = time.getHours();
-    let isAM = hours <= 12;
-    hours = hours > 12 ? hours - 12 : hours;
-    let minutes = time.getMinutes() + "";
-    minutes = minutes.length === 1 ? "0" + minutes : minutes;
-    return en_zh(
-      `${hours}:${minutes} ${isAM ? "AM" : "PM"}`,
-      `${isAM ? "上午" : "下午"} ${hours}:${minutes}`
-    );
-  })();
+  let time = formatTime(timestamp, en_zh);
 
   return (
     <div>

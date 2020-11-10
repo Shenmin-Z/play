@@ -1,5 +1,14 @@
 package chat
 
+import (
+	"encoding/json"
+)
+
+type IncomingMessage struct {
+	Kind    string          `json:"kind"`
+	Payload json.RawMessage `json:"payload"`
+}
+
 type Message struct {
 	Kind    string      `json:"kind"`
 	Payload interface{} `json:"payload"`

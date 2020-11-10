@@ -42,7 +42,7 @@ func (c *Client) cleanAndPrint(err error, kind string) {
 	}
 }
 
-func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
+func serveWs(hub *Hub, conMap ConMap, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		return
@@ -58,5 +58,5 @@ func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	client.notify()
 
 	go client.write()
-	go client.read()
+	go client.read(conMap)
 }

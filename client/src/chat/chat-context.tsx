@@ -37,7 +37,9 @@ type ChatAction =
   | ["setSelf", Partial<User>]
   | ["setContacts", User[]]
   | ["setClientUpdateNotification"]
-  | ["clearClientUpdateNotification"];
+  | ["clearClientUpdateNotification"]
+  | ["setCurrentConversation", Conversation]
+  | ["newConversation", Omit<Conversation, "history">];
 
 type ChatReducer = {
   (p: ChatState, a: ChatAction): ChatState;
@@ -69,9 +71,12 @@ export let ChatProvider: FC = props => {
           return {
             ...state,
             wsConn: payload as WebSocket,
-            wsJsonSender: m => {
-              (payload as WebSocket).send(JSON.stringify(m));
-            }
+            wsJsonSender:
+              payload === null
+                ? null
+                : m => {
+                    (payload as WebSocket).send(JSON.stringify(m));
+                  }
           };
         case "setSelf":
           return { ...state, self: { ...state.self, ...(payload as User) } };
@@ -87,12 +92,27 @@ export let ChatProvider: FC = props => {
           return { ...state, hasUpdate: true };
         case "clearClientUpdateNotification":
           return { ...state, hasUpdate: false };
+        case "setCurrentConversation":
+          return { ...state, currentConversation: payload as Conversation };
+        case "newConversation": {
+          let { id, name, users } = payload as Conversation;
+          let pm = state.conversations;
+          let nm = new Map(pm);
+          let nc = { id, name, users, history: [] };
+          nm.set(id, nc);
+          let result = { ...state, conversations: nm };
+          if (users?.[0].id === state.self.id) {
+            result.currentConversation = nc;
+            result.status = "conversation";
+          }
+          return result;
+        }
         default:
           return state;
       }
     },
     {
-      status: "conversation",
+      status: "contacts",
       lang: "en",
       wsConn: null,
       wsJsonSender: null,
@@ -148,6 +168,10 @@ export let ChatProvider: FC = props => {
         }
         case "ClientUpdateNotification": {
           chatDispatch(["setClientUpdateNotification"]);
+          break;
+        }
+        case "ConversationCreated": {
+          chatDispatch(["newConversation", message.payload]);
           break;
         }
       }

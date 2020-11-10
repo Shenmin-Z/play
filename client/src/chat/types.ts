@@ -35,11 +35,22 @@ export type IncomingMessage =
       kind: "ClientList";
       payload: User[];
     }
-  | { kind: "ClientUpdateNotification" };
+  | { kind: "ClientUpdateNotification" }
+  | {
+      kind: "ConversationCreated";
+      payload: { id: string; name: string; users: User[] };
+    };
 
 export type OutgoingMessage =
   | { kind: "UpdateName"; payload: string }
-  | { kind: "GetClientList" };
+  | { kind: "GetClientList" }
+  | {
+      kind: "CreateConversation";
+      payload: {
+        name: string;
+        users: string[];
+      };
+    };
 
 export type User = {
   id: string;

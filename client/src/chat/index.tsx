@@ -49,11 +49,12 @@ let Route: FC = () => {
   useEffect(() => {
     switch (status) {
       case "contacts": {
+        if (!wsJsonSender) return;
         wsJsonSender({ kind: "GetClientList" });
         chatDispatch(["clearClientUpdateNotification"]);
       }
     }
-  }, [status]);
+  }, [status, wsJsonSender]);
 
   useEffect(() => {
     if (statusRef.current === "contacts" && hasUpdate) {
