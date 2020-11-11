@@ -13,10 +13,16 @@ type CreateConversationPayload struct {
 	Users []string
 }
 
+type NewConversationMessagePayload struct {
+	Id      string
+	Sender  string
+	Message string
+}
+
 func (c *Client) read(conMap ConMap) {
 	var readErr error
 	defer func() {
-		c.cleanAndPrint(readErr, "READ ")
+		c.cleanAndPrint(readErr, "READ ", conMap)
 	}()
 
 	c.conn.SetReadDeadline(time.Now().Add(pongWait))
@@ -92,6 +98,18 @@ out:
 				clients[i] = client
 			}
 			conMap.create(payload.Name, clients)
+		case "NewConversationMessage":
+			payload := NewConversationMessagePayload{}
+			err := json.Unmarshal(incoming.Payload, &payload)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+			client, ok := c.hub.clients[payload.Sender]
+			if !ok {
+				continue
+			}
+			conMap.newMessage(payload.Id, client, payload.Message)
 		}
 	}
 }

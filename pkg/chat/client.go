@@ -21,18 +21,22 @@ var upgrader = websocket.Upgrader{
 }
 
 type Client struct {
-	Id      string `json:"id"`
-	Name    string `json:"name"`
-	Profile bool   `json:"profile"`
-	hub     *Hub
-	conn    *websocket.Conn
-	send    chan Message
+	Id            string `json:"id"`
+	Name          string `json:"name"`
+	Profile       bool   `json:"profile"`
+	hub           *Hub
+	conversations map[*Conversation]bool
+	conn          *websocket.Conn
+	send          chan Message
 }
 
-func (c *Client) cleanAndPrint(err error, kind string) {
+func (c *Client) cleanAndPrint(err error, kind string, conMap ConMap) {
 	c.hub.unregister <- c
 	c.conn.Close()
 	deleteImage(c.Id)
+	for con := range c.conversations {
+		delete(conMap, con.Id)
+	}
 	kindMsg := utils.Magenta(kind)
 	errMsg := fmt.Sprintf("%s closed.", c.Name)
 	if err == nil {
@@ -48,15 +52,16 @@ func serveWs(hub *Hub, conMap ConMap, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	client := &Client{
-		Id:   utils.PseudoUuid(),
-		Name: utils.GenerateName(),
-		hub:  hub,
-		conn: conn,
-		send: make(chan Message, 1),
+		Id:            utils.PseudoUuid(),
+		Name:          utils.GenerateName(),
+		hub:           hub,
+		conversations: make(map[*Conversation]bool),
+		conn:          conn,
+		send:          make(chan Message, 1),
 	}
 	client.hub.register <- client
 	client.notify()
 
-	go client.write()
+	go client.write(conMap)
 	go client.read(conMap)
 }

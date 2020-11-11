@@ -5,8 +5,8 @@ import { imageSrc } from "./common";
 import { useChatContext } from "./chat-context";
 
 export let Contacts: FC = () => {
-  let { chatState } = useChatContext();
-  let { contacts, wsJsonSender, self } = chatState;
+  let { chatState, chatDispatch } = useChatContext();
+  let { contacts, wsJsonSender, self, ucMap, conversations } = chatState;
 
   return (
     <div style={{ backgroundColor: BG_GRAY, height: "100%" }}>
@@ -18,13 +18,23 @@ export let Contacts: FC = () => {
             image={<ProfileImageOther src={imageSrc(c)} />}
             onClick={() => {
               if (c.id === self.id) return;
-              wsJsonSender({
-                kind: "CreateConversation",
-                payload: {
-                  name: "",
-                  users: [self.id, c.id]
-                }
-              });
+              let existingConversation = conversations.get(ucMap.get(c.id));
+              if (existingConversation) {
+                chatDispatch(["setCurrentConversation", existingConversation]);
+                chatDispatch(["setStatus", "conversation"]);
+                chatDispatch([
+                  "clearConversationNotification",
+                  existingConversation.id
+                ]);
+              } else {
+                wsJsonSender({
+                  kind: "CreateConversation",
+                  payload: {
+                    name: "",
+                    users: [self.id, c.id]
+                  }
+                });
+              }
             }}
           />
         ))}

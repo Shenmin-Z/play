@@ -39,6 +39,10 @@ export type IncomingMessage =
   | {
       kind: "ConversationCreated";
       payload: { id: string; name: string; users: User[] };
+    }
+  | {
+      kind: "NewConversationMessage";
+      payload: NewConversationMessage;
     };
 
 export type OutgoingMessage =
@@ -49,6 +53,14 @@ export type OutgoingMessage =
       payload: {
         name: string;
         users: string[];
+      };
+    }
+  | {
+      kind: "NewConversationMessage";
+      payload: {
+        id: string;
+        sender: string;
+        message: string;
       };
     };
 
@@ -69,4 +81,11 @@ export type Conversation = {
   name: string;
   users: User[];
   history: ChatMessage[];
+};
+
+export type NewConversationMessage = {
+  id: string;
+  user: string;
+  message: string;
+  timestamp: number;
 };

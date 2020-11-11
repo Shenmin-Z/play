@@ -1,4 +1,4 @@
-import React, { FC, useReducer, Reducer } from "react";
+import React, { FC, useReducer, Reducer, useRef } from "react";
 import { useChatContext } from "./chat-context";
 import { BG_GRAY, BG_WHITE, TEXT_GRAY } from "./colors";
 import { imageSrc, formatTime } from "./common";
@@ -8,14 +8,15 @@ import { ChatMessage } from "./types";
 type State = {
   textarea: {
     height: string;
+    content: string;
   };
 };
 
-type Action = ["setTextareaHeight", string];
+type Action = ["setTextareaHeight", string] | ["setTextareaContent", string];
 
 export let Conversation: FC = () => {
   let { chatState } = useChatContext();
-  let { self, currentConversation } = chatState;
+  let { self, currentConversation, en_zh, wsJsonSender } = chatState;
   let history = currentConversation.history;
 
   let [state, dispath] = useReducer<Reducer<State, Action>>(
@@ -28,16 +29,33 @@ export let Conversation: FC = () => {
             textarea: { ...state.textarea, height: payload as string }
           };
         }
+        case "setTextareaContent": {
+          return {
+            ...state,
+            textarea: { ...state.textarea, content: payload as string }
+          };
+        }
         default:
           return state;
       }
     },
     {
-      textarea: { height: "auto" }
+      textarea: { height: "auto", content: "" }
     }
   );
 
   let { textarea } = state;
+
+  let textareaRef = useRef<HTMLTextAreaElement>(null);
+  let adjustHeight = () => {
+    if (!textareaRef.current) return;
+    let textarea = textareaRef.current;
+    let previous = textarea.style.height;
+    textarea.style.height = "auto";
+    let nextHeight = textarea.scrollHeight + "px";
+    textarea.style.height = previous;
+    dispath(["setTextareaHeight", nextHeight]);
+  };
 
   return (
     <div
@@ -49,29 +67,15 @@ export let Conversation: FC = () => {
       }}
     >
       <div style={{ flexGrow: 1, margin: "10px 10px 0 10px" }}>
-        {history.map(i => (
-          <ChatSingle key={i.timestamp} showTime content={i} />
-        ))}
-        <ChatSingle
-          showTime
-          content={{
-            user: {
-              id: "aaa",
-              name: "text",
-              profile: false
-            },
-            text: "test test test test",
-            timestamp: 1604978909600
-          }}
-        />
-        <ChatSingle
-          showTime
-          content={{
-            user: self,
-            text: "hello hello hello hello hello hello",
-            timestamp: 1604984653366
-          }}
-        />
+        {history.map((i, idx) => {
+          let showTime = true;
+          if (idx > 0) {
+            showTime = history[idx].timestamp - history[idx - 1].timestamp > 60;
+          }
+          return (
+            <ChatSingle key={i.timestamp} showTime={showTime} content={i} />
+          );
+        })}
       </div>
       <div
         style={{
@@ -85,7 +89,12 @@ export let Conversation: FC = () => {
           <Wifi width={26} />
         </div>
         <textarea
+          ref={textareaRef}
           rows={1}
+          value={textarea.content}
+          onChange={e => {
+            dispath(["setTextareaContent", e.target.value]);
+          }}
           style={{
             flexGrow: 1,
             padding: 0,
@@ -95,23 +104,46 @@ export let Conversation: FC = () => {
             outline: "none",
             resize: "none",
             fontSize: "18px",
-            height: textarea.height
+            height: textarea.height,
+            overflow: "hidden"
           }}
-          onInput={({ target }) => {
-            let textarea = target as HTMLTextAreaElement;
-            let previous = textarea.style.height;
-            textarea.style.height = "auto";
-            let nextHeight = textarea.scrollHeight + "px";
-            textarea.style.height = previous;
-            dispath(["setTextareaHeight", nextHeight]);
-          }}
+          onInput={adjustHeight}
         />
         <div style={{ margin: "7px 5px" }}>
           <Smile width={26} />
         </div>
-        <div style={{ margin: "7px 5px" }}>
-          <Add width={26} />
-        </div>
+        {textarea.content === "" ? (
+          <div style={{ margin: "7px 5px" }}>
+            <Add width={26} />
+          </div>
+        ) : (
+          <div
+            style={{
+              backgroundColor: "#07C160",
+              padding: 7,
+              minWidth: 45,
+              borderRadius: 5,
+              color: "#fff",
+              textAlign: "center",
+              margin: "0 6px 10px 2px",
+              cursor: "pointer"
+            }}
+            onClick={() => {
+              wsJsonSender({
+                kind: "NewConversationMessage",
+                payload: {
+                  id: currentConversation.id,
+                  sender: self.id,
+                  message: textarea.content
+                }
+              });
+              dispath(["setTextareaContent", ""]);
+              setTimeout(adjustHeight, 0);
+            }}
+          >
+            {en_zh("Send", "发送")}
+          </div>
+        )}
       </div>
     </div>
   );

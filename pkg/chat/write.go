@@ -8,14 +8,14 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func (c *Client) write() {
+func (c *Client) write(conMap ConMap) {
 	ticker := time.NewTicker(pingPeriod)
 
 	var writeErr error
 
 	defer func() {
 		ticker.Stop()
-		c.cleanAndPrint(writeErr, "WRITE")
+		c.cleanAndPrint(writeErr, "WRITE", conMap)
 	}()
 
 	flush := func(message Message) error {

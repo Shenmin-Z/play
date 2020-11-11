@@ -22,7 +22,9 @@ export let Footer: FC = () => {
         bottom: 0,
         backgroundColor: "#F7F7F7",
         width: "100vw",
+        maxWidth: 600,
         height: 70,
+        margin: "auto",
         display: "flex",
         justifyContent: "space-evenly",
         alignItems: "center",
@@ -47,7 +49,7 @@ const W = 26;
 
 let Icon: FC<Props> = ({ type, zh, en }) => {
   let { chatState, chatDispatch } = useChatContext();
-  let { en_zh, status } = chatState;
+  let { en_zh, status, conversationNotification } = chatState;
 
   let createClick = (s: ChatStatus) => () => {
     chatDispatch(["setStatus", s]);
@@ -57,8 +59,35 @@ let Icon: FC<Props> = ({ type, zh, en }) => {
 
   let icon = (() => {
     switch (type) {
-      case "chats":
-        return <Chats width={W} highlight={active} />;
+      case "chats": {
+        let counts = Array.from(conversationNotification.values()).reduce(
+          (p, i) => p + i,
+          0
+        );
+        return (
+          <div style={{ position: "relative" }}>
+            <Chats width={W} highlight={active} />
+            <div
+              style={{
+                display: counts > 0 ? "block" : "none",
+                position: "absolute",
+                top: 0,
+                right: -4,
+                width: 15,
+                height: 15,
+                lineHeight: "15px",
+                borderRadius: "50%",
+                textAlign: "center",
+                color: "#fff",
+                background: "#EE0000",
+                fontSize: "10px"
+              }}
+            >
+              {counts}
+            </div>
+          </div>
+        );
+      }
       case "contacts":
         return <Contacts width={W} highlight={active} />;
       case "discover":

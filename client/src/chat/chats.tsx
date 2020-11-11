@@ -4,10 +4,10 @@ import { useChatContext } from "./chat-context";
 
 export let Chats: FC = () => {
   let { chatState, chatDispatch } = useChatContext();
-  let { conversations, self, en_zh } = chatState;
+  let { conversations, self, en_zh, conversationNotification } = chatState;
 
   return (
-    <div>
+    <div style={{ backgroundColor: "#fff", height: "100%" }}>
       {Array.from(conversations.values()).map(c => {
         if (c.users.length === 2) {
           let other = c.users.find(i => i.id !== self.id);
@@ -22,26 +22,16 @@ export let Chats: FC = () => {
               title={other.name}
               latest={latest.text}
               time={formatTime(latest.timestamp, en_zh)}
+              notifications={conversationNotification.get(c.id) || 0}
               onClick={() => {
                 chatDispatch(["setCurrentConversation", c]);
                 chatDispatch(["setStatus", "conversation"]);
+                chatDispatch(["clearConversationNotification", c.id]);
               }}
             />
           );
         }
       })}
-      <ChatRow
-        img="/public/chat-images/bird_ooruri.png"
-        title="Ooruri"
-        latest="Okay."
-        time="8:57 AM"
-      />
-      <ChatRow
-        img="/public/chat-images/plant_kokemomo.png"
-        title="Kokemomo"
-        latest="See ya"
-        time="Yesterday"
-      />
     </div>
   );
 };

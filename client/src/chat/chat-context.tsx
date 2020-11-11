@@ -6,7 +6,13 @@ import React, {
   useReducer,
   useEffect
 } from "react";
-import { IncomingMessage, OutgoingMessage, User, Conversation } from "./types";
+import {
+  IncomingMessage,
+  OutgoingMessage,
+  User,
+  Conversation,
+  NewConversationMessage
+} from "./types";
 
 export type ChatStatus =
   | "chats"
@@ -26,8 +32,10 @@ type ChatState = {
   self: User;
   contacts: Map<string, User>;
   conversations: Map<string, Conversation>;
+  ucMap: Map<string, string>;
   currentConversation: Conversation;
   hasUpdate: boolean;
+  conversationNotification: Map<string, number>;
 };
 
 type ChatAction =
@@ -39,7 +47,10 @@ type ChatAction =
   | ["setClientUpdateNotification"]
   | ["clearClientUpdateNotification"]
   | ["setCurrentConversation", Conversation]
-  | ["newConversation", Omit<Conversation, "history">];
+  | ["newConversation", Omit<Conversation, "history">]
+  | ["newConversationMessage", NewConversationMessage]
+  | ["addConversationNotification", string]
+  | ["clearConversationNotification", string];
 
 type ChatReducer = {
   (p: ChatState, a: ChatAction): ChatState;
@@ -100,12 +111,67 @@ export let ChatProvider: FC = props => {
           let nm = new Map(pm);
           let nc = { id, name, users, history: [] };
           nm.set(id, nc);
+          users.forEach(u => {
+            if (u.id !== state.self.id) {
+              state.ucMap.set(u.id, id);
+            }
+          });
           let result = { ...state, conversations: nm };
           if (users?.[0].id === state.self.id) {
             result.currentConversation = nc;
             result.status = "conversation";
           }
           return result;
+        }
+        case "newConversationMessage": {
+          let {
+            id,
+            user: _user,
+            message,
+            timestamp
+          } = payload as NewConversationMessage;
+          let pc = state.conversations.get(id);
+          if (!pc) return state;
+          let user = state.contacts.get(_user);
+          if (!user) return state;
+          let nc = {
+            ...pc,
+            history: [
+              ...pc.history,
+              {
+                user,
+                text: message,
+                timestamp
+              }
+            ]
+          };
+          let nm = new Map(state.conversations);
+          nm.set(id, nc);
+          let result = { ...state, conversations: nm };
+          if (state.currentConversation?.id === id) {
+            result.currentConversation = nc;
+          }
+          return result;
+        }
+        case "addConversationNotification": {
+          let id = payload as string;
+          if (
+            state.status === "conversation" &&
+            id === state.currentConversation?.id
+          )
+            return state;
+          let pc = state.conversationNotification.get(id) || 0;
+          let pn = state.conversationNotification;
+          let nn = new Map(pn);
+          nn.set(id, pc + 1);
+          return { ...state, conversationNotification: nn };
+        }
+        case "clearConversationNotification": {
+          let id = payload as string;
+          let pn = state.conversationNotification;
+          let nn = new Map(pn);
+          nn.delete(id);
+          return { ...state, conversationNotification: nn };
         }
         default:
           return state;
@@ -120,8 +186,10 @@ export let ChatProvider: FC = props => {
       en_zh: en => en,
       contacts: new Map(),
       conversations: new Map(),
+      ucMap: new Map(),
       currentConversation: { id: "", name: "aaaa bbb", users: [], history: [] },
-      hasUpdate: false
+      hasUpdate: false,
+      conversationNotification: new Map()
     }
   );
 
@@ -172,6 +240,11 @@ export let ChatProvider: FC = props => {
         }
         case "ConversationCreated": {
           chatDispatch(["newConversation", message.payload]);
+          break;
+        }
+        case "NewConversationMessage": {
+          chatDispatch(["newConversationMessage", message.payload]);
+          chatDispatch(["addConversationNotification", message.payload.id]);
           break;
         }
       }

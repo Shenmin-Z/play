@@ -26,7 +26,7 @@ export let Row: FC<RowProps> = ({
         display: "flex",
         minHeight: 50,
         alignItems: "stretch",
-        width: "100vw"
+        width: "100%"
       }}
       onClick={onClick || (() => {})}
     >
@@ -55,7 +55,7 @@ export let Row: FC<RowProps> = ({
 
 export let RowSpace: FC = () => {
   return (
-    <div style={{ width: "100vw", height: 10, backgroundColor: BG_GRAY }}></div>
+    <div style={{ width: "100%", height: 10, backgroundColor: BG_GRAY }}></div>
   );
 };
 
@@ -78,6 +78,7 @@ type ChatRowProps = {
   title: string;
   latest: string;
   time: string;
+  notifications: number;
   onClick?: () => void;
 };
 
@@ -86,6 +87,7 @@ export let ChatRow: FC<ChatRowProps> = ({
   title,
   latest,
   time,
+  notifications,
   onClick
 }) => {
   return (
@@ -96,8 +98,10 @@ export let ChatRow: FC<ChatRowProps> = ({
         display: "flex",
         height: 60,
         alignItems: "stretch",
-        width: "100vw",
-        paddingLeft: 20
+        width: "100%",
+        boxSizing: "border-box",
+        paddingLeft: 20,
+        position: "relative"
       }}
     >
       <img
@@ -109,6 +113,24 @@ export let ChatRow: FC<ChatRowProps> = ({
           borderRadius: "5px"
         }}
       />
+      <div
+        style={{
+          display: notifications > 0 ? "block" : "none",
+          position: "absolute",
+          top: 3,
+          left: 48,
+          width: 15,
+          height: 15,
+          lineHeight: "15px",
+          borderRadius: "50%",
+          textAlign: "center",
+          color: "#fff",
+          background: "#EE0000",
+          fontSize: "10px"
+        }}
+      >
+        {notifications}
+      </div>
       <div
         style={{
           flexGrow: 1,
@@ -124,9 +146,7 @@ export let ChatRow: FC<ChatRowProps> = ({
           <div style={{ color: TEXT_BLACK, fontSize: "17px" }}>{title}</div>
           <div style={{ color: TEXT_GRAY, fontSize: "12px" }}>{latest}</div>
         </div>
-        <div style={{ paddingRight: 20, color: TEXT_GRAY, fontSize: "12px" }}>
-          {time}
-        </div>
+        <div style={{ color: TEXT_GRAY, fontSize: "12px" }}>{time}</div>
       </div>
     </div>
   );

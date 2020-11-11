@@ -27,7 +27,7 @@ export let Chat: FC = () => {
           position: "fixed",
           width: "100vw",
           height: "100vh",
-          backgroundColor: "#fff",
+          backgroundColor: "#4a5568",
           top: 0,
           zIndex: 3,
           font: `Arial, "微软雅黑"`
@@ -72,7 +72,9 @@ let Route: FC = () => {
       style={{
         display: "flex",
         flexDirection: "column",
-        height: "100vh"
+        height: "100vh",
+        maxWidth: 600,
+        margin: "auto"
       }}
     >
       <Header />
