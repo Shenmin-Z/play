@@ -172,7 +172,7 @@ let submitStyle: CSSProperties = {
   backgroundColor: "#0078D7",
   borderRadius: ".5rem",
   fontSize: 18,
-  color: "var(--baby-powder)",
+  color: "#fff",
   lineHeight: 1.25,
   padding: ".5rem .75rem"
 };

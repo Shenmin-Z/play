@@ -138,14 +138,14 @@ export let ImageCrop: FC<Props> = ({ file, onOk, onCancel }) => {
         position: "fixed",
         top: 0,
         width: "100vw",
-        height: "100vh",
+        height: "100%",
         backgroundColor: "#000"
       }}
     >
       <div
         style={{
           position: "relative",
-          height: "calc(100vh - 60px)",
+          height: "calc(100% - 60px)",
           margin: "0 20px"
         }}
       >

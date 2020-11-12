@@ -10,8 +10,8 @@ import (
 
 // Serve static files
 func static() {
-	appVersion, exist := os.LookupEnv("app_version")
-	if !exist {
+	appVersion, isProd := os.LookupEnv("app_version")
+	if !isProd {
 		appVersion = "development-mode"
 	}
 
@@ -20,31 +20,34 @@ func static() {
 			http.Error(w, "Method Not Supported", http.StatusMethodNotAllowed)
 			return
 		}
+
+		w.Header().Set("Etag", `"`+appVersion+`"`)
+		w.Header().Set("Cache-Control", "max-age=600")
+		if etag := r.Header.Get("If-None-Match"); strings.Contains(etag, appVersion) {
+			w.WriteHeader(http.StatusNotModified)
+			return
+		}
+
 		if _, err := os.Stat("client" + r.URL.Path); os.IsNotExist(err) {
 			http.Error(w, "File Not Exsit", http.StatusNotFound)
 			return
 		}
-
 		f, err := os.Open("client" + r.URL.Path)
 		defer f.Close()
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		if etag := r.Header.Get("If-None-Match"); strings.Contains(etag, appVersion) {
-			w.WriteHeader(http.StatusNotModified)
-			return
-		}
-		w.Header().Set("Etag", `"`+appVersion+`"`)
-
 		switch p := r.URL.Path; {
 		case endsWith(p, ".js"):
 			w.Header().Set("Content-Type", "text/javascript; charset=utf-8")
-			if !exist {
+			if !isProd {
 				w.Header().Del("Etag")
+				w.Header().Del("Cache-Control")
 			}
 		case endsWith(p, ".map"):
 			w.Header().Del("Etag")
+			w.Header().Del("Cache-Control")
 		case endsWith(p, ".css"):
 			w.Header().Set("Content-Type", "text/css; charset=utf-8")
 		}
@@ -55,7 +58,7 @@ func static() {
 		}
 	})
 
-	http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
 
 		var filePath string
@@ -64,22 +67,23 @@ func static() {
 		} else if strings.Contains(path, "favicon.ico") {
 			filePath = "client/public/favicon.png"
 		} else {
-			http.Error(rw, "Page Does Not Exsit", http.StatusNotFound)
+			http.Error(w, "Page Does Not Exsit", http.StatusNotFound)
 			return
 		}
 
+		w.Header().Set("Etag", `"`+appVersion+`"`)
+		w.Header().Set("Cache-Control", "max-age=600")
 		if etag := r.Header.Get("If-None-Match"); strings.Contains(etag, appVersion) {
-			rw.WriteHeader(http.StatusNotModified)
+			w.WriteHeader(http.StatusNotModified)
 			return
 		}
-		rw.Header().Set("Etag", `"`+appVersion+`"`)
 
 		f, err := os.Open(filePath)
 		defer f.Close()
 		if err != nil {
 			log.Fatal(err)
 		}
-		_, err = io.Copy(rw, f)
+		_, err = io.Copy(w, f)
 		if err != nil {
 			log.Fatal(err)
 		}

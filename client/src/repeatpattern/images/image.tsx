@@ -381,7 +381,7 @@ let formRow: CSSProperties = {
 
 let formLabelStyle: CSSProperties = {
   display: "block",
-  color: "var(--form-label)",
+  color: "#4a5568",
   marginBottom: "0.5rem",
   fontSize: ".875rem",
   fontWeight: 700

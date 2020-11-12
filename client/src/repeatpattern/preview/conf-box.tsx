@@ -244,7 +244,7 @@ let fieldStyle: CSSProperties = {
 
 let formLabelStyle: CSSProperties = {
   display: "block",
-  color: "var(--form-label)",
+  color: "#4a5568",
   marginRight: ".5em",
   fontSize: ".875rem",
   fontWeight: 700

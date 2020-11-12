@@ -29,7 +29,7 @@ let Content: FC = () => {
         <div style={{ position: "relative", zIndex: 0 }}>
           <div
             style={{
-              margin: "40px auto 0px auto",
+              margin: "20px auto 20px auto",
               padding: "0 20px",
               display: "flex",
               flexDirection: "column"

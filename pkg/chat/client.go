@@ -25,18 +25,14 @@ type Client struct {
 	Name          string `json:"name"`
 	Profile       bool   `json:"profile"`
 	hub           *Hub
+	conMap        ConMap
 	conversations map[*Conversation]bool
 	conn          *websocket.Conn
 	send          chan Message
 }
 
-func (c *Client) cleanAndPrint(err error, kind string, conMap ConMap) {
+func (c *Client) cleanAndPrint(err error, kind string) {
 	c.hub.unregister <- c
-	c.conn.Close()
-	deleteImage(c.Id)
-	for con := range c.conversations {
-		delete(conMap, con.Id)
-	}
 	kindMsg := utils.Magenta(kind)
 	errMsg := fmt.Sprintf("%s closed.", c.Name)
 	if err == nil {
@@ -55,6 +51,7 @@ func serveWs(hub *Hub, conMap ConMap, w http.ResponseWriter, r *http.Request) {
 		Id:            utils.PseudoUuid(),
 		Name:          utils.GenerateName(),
 		hub:           hub,
+		conMap:        conMap,
 		conversations: make(map[*Conversation]bool),
 		conn:          conn,
 		send:          make(chan Message, 1),
@@ -62,6 +59,6 @@ func serveWs(hub *Hub, conMap ConMap, w http.ResponseWriter, r *http.Request) {
 	client.hub.register <- client
 	client.notify()
 
-	go client.write(conMap)
+	go client.write()
 	go client.read(conMap)
 }

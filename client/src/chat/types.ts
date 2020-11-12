@@ -43,6 +43,10 @@ export type IncomingMessage =
   | {
       kind: "NewConversationMessage";
       payload: NewConversationMessage;
+    }
+  | {
+      kind: "ConversationKilled";
+      payload: string;
     };
 
 export type OutgoingMessage =
@@ -81,6 +85,7 @@ export type Conversation = {
   name: string;
   users: User[];
   history: ChatMessage[];
+  alive:boolean;
 };
 
 export type NewConversationMessage = {

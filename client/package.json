@@ -12,6 +12,6 @@
   },
   "scripts": {
     "build": "yarn esbuild index.tsx --bundle '--define:process.env.NODE_ENV=\"development\"' --outfile=./public/build.js",
-    "build:prd": "yarn esbuild index.tsx --bundle '--define:process.env.NODE_ENV=\"production\"' --minify --outfile=./public/build.js"
+    "build:prd": "yarn esbuild index.tsx --bundle '--define:process.env.NODE_ENV=\"production\"' --minify --target=es6 --outfile=./public/build.js"
   }
 }

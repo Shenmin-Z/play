@@ -22,7 +22,7 @@ type NewConversationMessagePayload struct {
 func (c *Client) read(conMap ConMap) {
 	var readErr error
 	defer func() {
-		c.cleanAndPrint(readErr, "READ ", conMap)
+		c.cleanAndPrint(readErr, "READ ")
 	}()
 
 	c.conn.SetReadDeadline(time.Now().Add(pongWait))

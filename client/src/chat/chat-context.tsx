@@ -48,6 +48,7 @@ type ChatAction =
   | ["clearClientUpdateNotification"]
   | ["setCurrentConversation", Conversation]
   | ["newConversation", Omit<Conversation, "history">]
+  | ["killConversation", string]
   | ["newConversationMessage", NewConversationMessage]
   | ["addConversationNotification", string]
   | ["clearConversationNotification", string];
@@ -109,7 +110,7 @@ export let ChatProvider: FC = props => {
           let { id, name, users } = payload as Conversation;
           let pm = state.conversations;
           let nm = new Map(pm);
-          let nc = { id, name, users, history: [] };
+          let nc = { id, name, users, history: [], alive: true };
           nm.set(id, nc);
           users.forEach(u => {
             if (u.id !== state.self.id) {
@@ -120,6 +121,23 @@ export let ChatProvider: FC = props => {
           if (users?.[0].id === state.self.id) {
             result.currentConversation = nc;
             result.status = "conversation";
+          }
+          return result;
+        }
+        case "killConversation": {
+          let id = payload as string;
+          let pm = state.conversations;
+          let nm = new Map(pm);
+          let nc = nm.get(id);
+          if (!nc) return state;
+          nc = { ...nc, alive: false };
+          nm.set(id, nc);
+          let result = { ...state, conversations: nm };
+          if (state.currentConversation?.id === id) {
+            result.currentConversation = {
+              ...state.currentConversation,
+              alive: false
+            };
           }
           return result;
         }
@@ -187,7 +205,7 @@ export let ChatProvider: FC = props => {
       contacts: new Map(),
       conversations: new Map(),
       ucMap: new Map(),
-      currentConversation: { id: "", name: "aaaa bbb", users: [], history: [] },
+      currentConversation: null,
       hasUpdate: false,
       conversationNotification: new Map()
     }
@@ -239,7 +257,14 @@ export let ChatProvider: FC = props => {
           break;
         }
         case "ConversationCreated": {
-          chatDispatch(["newConversation", message.payload]);
+          chatDispatch([
+            "newConversation",
+            { ...message.payload, alive: true }
+          ]);
+          break;
+        }
+        case "ConversationKilled": {
+          chatDispatch(["killConversation", message.payload]);
           break;
         }
         case "NewConversationMessage": {

@@ -17,7 +17,6 @@ type Action = ["setTextareaHeight", string] | ["setTextareaContent", string];
 export let Conversation: FC = () => {
   let { chatState } = useChatContext();
   let { self, currentConversation, en_zh, wsJsonSender } = chatState;
-  let history = currentConversation.history;
 
   let [state, dispath] = useReducer<Reducer<State, Action>>(
     (state, action) => {
@@ -56,6 +55,9 @@ export let Conversation: FC = () => {
     textarea.style.height = previous;
     dispath(["setTextareaHeight", nextHeight]);
   };
+
+  if (!currentConversation) return null;
+  let history = currentConversation.history;
 
   return (
     <div
@@ -129,16 +131,20 @@ export let Conversation: FC = () => {
               cursor: "pointer"
             }}
             onClick={() => {
-              wsJsonSender({
-                kind: "NewConversationMessage",
-                payload: {
-                  id: currentConversation.id,
-                  sender: self.id,
-                  message: textarea.content
-                }
-              });
-              dispath(["setTextareaContent", ""]);
-              setTimeout(adjustHeight, 0);
+              if (currentConversation.alive === false) {
+                alert(en_zh("The other side has left.", "对方已离开。"));
+              } else {
+                wsJsonSender({
+                  kind: "NewConversationMessage",
+                  payload: {
+                    id: currentConversation.id,
+                    sender: self.id,
+                    message: textarea.content
+                  }
+                });
+                dispath(["setTextareaContent", ""]);
+                setTimeout(adjustHeight, 0);
+              }
             }}
           >
             {en_zh("Send", "发送")}

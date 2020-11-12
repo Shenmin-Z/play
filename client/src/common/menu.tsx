@@ -49,8 +49,8 @@ export let Menu: FC = () => {
       {menuState.show && (
         <div
           style={{
-            width: "100vw",
-            height: "100vh",
+            width: "100%",
+            height: "100%",
             marginTop: 40,
             position: "fixed",
             opacity: menuState.transitionStatus === "end" ? 1 : 0,
@@ -76,71 +76,58 @@ export let Menu: FC = () => {
                   fontSize: 14,
                   fontWeight: 700,
                   lineHeight: 3,
-                  textTransform: "uppercase",
                   textAlign: "start",
                   letterSpacing: "0.08em"
                 }}
               >
-                Tools
+                TOOLS
               </div>
             </div>
-            <ul
-              style={{
-                listStyle: "none",
-                paddingLeft: 0
-              }}
-            >
-              <li>
-                <a style={linkStyle} href="#play-button" onClick={toggleShow}>
-                  Add A Play Button
-                </a>
-              </li>
-              <li>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              {[
+                ["Add a Play Button", "#play-button"],
+                ["Create a Repeat Pattern", "#repeat-pattern"],
+                ["Chat", "#chat"]
+              ].map(([name, hash]) => (
                 <a
+                  key={name}
                   style={linkStyle}
-                  href="#repeat-pattern"
+                  href={hash}
                   onClick={toggleShow}
                 >
-                  Create A Repeat Pattern
+                  {name}
                 </a>
-              </li>
-            </ul>
+              ))}
+            </div>
           </div>
         </div>
       )}
       <div
         style={{
           backgroundColor: "#20232a",
-          bottom: 44,
-          color: "#61dafb",
+          bottom: 20,
+          right: 20,
+          width: 50,
+          height: 50,
           cursor: "pointer",
           position: "fixed",
-          right: 20,
           zIndex: 3,
-          borderRadius: "50%",
-          border: "1px solid rgba(255, 255, 255, 0.1)",
-          boxShadow: "0 0 20px rgba(0, 0, 0, 0.3)"
+          borderRadius: "50%"
         }}
         onClick={toggleShow}
       >
-        <div
-          style={{
-            padding: "0 20px"
-          }}
-        >
-          <div
-            style={{
-              height: 60
-            }}
+        <svg viewBox="0 0 4 4">
+          <g
+            stroke="#fff"
+            strokeWidth={0.2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            <div
-              style={{
-                width: 20,
-                height: 20
-              }}
-            ></div>
-          </div>
-        </div>
+            <line x1={1.2} y1={1.3} x2={2.8} y2={1.3} />
+            <line x1={1.2} y1={2} x2={2.8} y2={2} />
+            <line x1={1.2} y1={2.7} x2={2.8} y2={2.7} />
+          </g>
+        </svg>
       </div>
     </>
   );

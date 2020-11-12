@@ -1,9 +1,17 @@
-import React, { FC } from "react";
+import React, { FC, useEffect } from "react";
 import { Tabs, Image, getEmptyImage } from "./images";
 import { Preview } from "./preview";
 import { RepeatProvider, useRepeatContext } from "./repeat-context";
 
 export let RepeatPattern: FC = () => {
+  useEffect(() => {
+    let prev = document.body.style.background;
+    document.body.style.background = "#F1FFEE";
+    return () => {
+      document.body.style.background = prev;
+    };
+  });
+
   return (
     <div style={{ marginTop: 40, zIndex: 0 }}>
       <RepeatProvider>

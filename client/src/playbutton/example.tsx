@@ -20,14 +20,16 @@ export let Example: FC = () => {
           alt="input image"
         />
       </div>
-      <div
-        style={{
-          padding: "0 2px",
-          fontFamily: `Arial, "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", "Segoe UI Symbol"`,
-          fontSize: 24
-        }}
-      >
-        🡆
+      <div style={{ padding: "0 2px" }}>
+        <svg viewBox="0 0 4 3" style={{ width: 30 }}>
+          <path
+            d="M 0 1 L 2 1 L 2 0 L 4 1.5 L 2 3 L 2 2 L 0 2 Z"
+            fill="#171717"
+            strokeWidth={0}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
       </div>
       <div>
         <img

@@ -29,6 +29,21 @@ func (h *Hub) run() {
 			h.clients[client.Id] = client
 		case client := <-h.unregister:
 			if _, ok := h.clients[client.Id]; ok {
+				client.conn.Close()
+				deleteImage(client.Id)
+				for conversation := range client.conversations {
+					for _, iClient := range conversation.Clients {
+						if iClient.Id != client.Id {
+							if _, ok := h.clients[iClient.Id]; ok {
+								iClient.send <- Message{
+									Kind:    "ConversationKilled",
+									Payload: conversation.Id,
+								}
+							}
+						}
+					}
+					delete(client.conMap, conversation.Id)
+				}
 				delete(h.clients, client.Id)
 				close(client.send)
 			}
