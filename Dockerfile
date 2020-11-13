@@ -21,7 +21,7 @@ COPY --from=builder /build/main .
 COPY static/ static/
 COPY client/public/ client/public/
 
-ENV app_version=1.0.1
+ENV app_version=1.0.2
 
 EXPOSE 3000
 ENTRYPOINT ["/dist/main"]

@@ -9,7 +9,13 @@ export let Contacts: FC = () => {
   let { contacts, wsJsonSender, self, ucMap, conversations } = chatState;
 
   return (
-    <div style={{ backgroundColor: BG_GRAY, height: "100%" }}>
+    <div
+      style={{
+        backgroundColor: BG_GRAY,
+        height: "calc(100vh - 111px)",
+        overflow: "auto"
+      }}
+    >
       <RowGroup>
         {Array.from(contacts.values()).map(c => (
           <Row

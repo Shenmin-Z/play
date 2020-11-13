@@ -65,10 +65,11 @@ out:
 		switch incoming.Kind {
 		case "UpdateName":
 			name := string(incoming.Payload)
-			c.Name = name
+			// Remove surrounding quotes
+			c.Name = name[1 : len(incoming.Payload)-1]
 			c.send <- Message{
 				Kind:    "NameUpdated",
-				Payload: json.RawMessage(c.Name),
+				Payload: json.RawMessage(name),
 			}
 			c.notify()
 		case "GetClientList":

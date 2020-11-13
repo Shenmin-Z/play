@@ -8,6 +8,7 @@ import { Contacts } from "./contacts";
 import { Discover } from "./discover";
 import { Me } from "./me";
 import { EditProfile } from "./edit-profile";
+import { BG_GRAY } from "./colors";
 
 export let Chat: FC = () => {
   useEffect(() => {
@@ -22,12 +23,14 @@ export let Chat: FC = () => {
 
   return (
     <ChatProvider>
+      {/* Hack to hide address bar :( */}
+      <div style={{ height: 2000 }} />
       <div
         style={{
           position: "fixed",
           width: "100vw",
           height: "100%",
-          backgroundColor: "#4a5568",
+          background: "#4A5568",
           top: 0,
           zIndex: 3,
           font: `Arial, "微软雅黑"`
@@ -57,7 +60,7 @@ let Route: FC = () => {
   }, [status, wsJsonSender]);
 
   useEffect(() => {
-    if (statusRef.current === "contacts" && hasUpdate) {
+    if (hasUpdate) {
       wsJsonSender({ kind: "GetClientList" });
       chatDispatch(["clearClientUpdateNotification"]);
     }
@@ -70,6 +73,7 @@ let Route: FC = () => {
   return (
     <div
       style={{
+        background: BG_GRAY,
         display: "flex",
         flexDirection: "column",
         height: "100%",

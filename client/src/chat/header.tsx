@@ -5,7 +5,7 @@ import { LeftArrow, More } from "./svg";
 
 export let Header: FC = () => {
   let { chatState, chatDispatch } = useChatContext();
-  let { status, en_zh, currentConversation, self } = chatState;
+  let { status, en_zh, currentConversation, self, contacts } = chatState;
 
   let text = null;
   let hasArrow = false;
@@ -15,7 +15,8 @@ export let Header: FC = () => {
     case "conversation": {
       let { name, users } = currentConversation;
       if (!name) {
-        name = (users || []).find(i => i.id !== self.id).name;
+        let other = (users || []).find(i => i.id !== self.id);
+        name = (contacts.get(other.id) || other).name;
       }
       text = (
         <div

@@ -1,4 +1,4 @@
-import React, { FC, useReducer, Reducer, useRef } from "react";
+import React, { FC, useReducer, Reducer, useRef, useEffect } from "react";
 import { useChatContext } from "./chat-context";
 import { BG_GRAY, BG_WHITE, TEXT_GRAY } from "./colors";
 import { imageSrc, formatTime } from "./common";
@@ -10,9 +10,13 @@ type State = {
     height: string;
     content: string;
   };
+  bottomHeight: number;
 };
 
-type Action = ["setTextareaHeight", string] | ["setTextareaContent", string];
+type Action =
+  | ["setTextareaHeight", string]
+  | ["setTextareaContent", string]
+  | ["setBottomHeight", number];
 
 export let Conversation: FC = () => {
   let { chatState } = useChatContext();
@@ -34,20 +38,26 @@ export let Conversation: FC = () => {
             textarea: { ...state.textarea, content: payload as string }
           };
         }
+        case "setBottomHeight":
+          return { ...state, bottomHeight: payload as number };
         default:
           return state;
       }
     },
     {
-      textarea: { height: "auto", content: "" }
+      textarea: { height: "auto", content: "" },
+      bottomHeight: 50
     }
   );
 
-  let { textarea } = state;
+  let { textarea, bottomHeight } = state;
 
   let textareaRef = useRef<HTMLTextAreaElement>(null);
-  let adjustHeight = () => {
+  let bottomRef = useRef<HTMLDivElement>(null);
+  let containerRef = useRef<HTMLDivElement>(null);
+  let adjustTextAreaHeight = () => {
     if (!textareaRef.current) return;
+
     let textarea = textareaRef.current;
     let previous = textarea.style.height;
     textarea.style.height = "auto";
@@ -55,20 +65,28 @@ export let Conversation: FC = () => {
     textarea.style.height = previous;
     dispath(["setTextareaHeight", nextHeight]);
   };
-
+  let scrollToBottom = () => {
+    if (!containerRef.current) return;
+    containerRef.current.scrollTop = containerRef.current.scrollHeight;
+  };
+  let adjustDialogHeight = () => {
+    if (!bottomRef.current) return;
+    dispath(["setBottomHeight", bottomRef.current.offsetHeight]);
+  };
+  let history = currentConversation?.history || [];
+  useEffect(scrollToBottom, [bottomHeight, history.length]);
   if (!currentConversation) return null;
-  let history = currentConversation.history;
 
   return (
     <div
+      ref={containerRef}
       style={{
         backgroundColor: BG_GRAY,
-        height: "100%",
-        display: "flex",
-        flexDirection: "column"
+        height: `calc(100vh - 40px - ${bottomHeight}px)`,
+        overflow: "auto"
       }}
     >
-      <div style={{ flexGrow: 1, margin: "10px 10px 0 10px" }}>
+      <div style={{ margin: "10px 10px 0 10px" }}>
         {history.map((i, idx) => {
           let showTime = true;
           if (idx > 0) {
@@ -80,11 +98,16 @@ export let Conversation: FC = () => {
         })}
       </div>
       <div
+        ref={bottomRef}
         style={{
           display: "flex",
           alignItems: "flex-end",
           backgroundColor: BG_WHITE,
-          padding: "0 3px"
+          padding: "0 3px",
+          width: "100vw",
+          maxWidth: 600 - 6,
+          position: "absolute",
+          bottom: 0
         }}
       >
         <div style={{ margin: "7px 5px" }}>
@@ -96,6 +119,7 @@ export let Conversation: FC = () => {
           value={textarea.content}
           onChange={e => {
             dispath(["setTextareaContent", e.target.value]);
+            setTimeout(adjustDialogHeight, 0);
           }}
           style={{
             flexGrow: 1,
@@ -109,7 +133,8 @@ export let Conversation: FC = () => {
             height: textarea.height,
             overflow: "hidden"
           }}
-          onInput={adjustHeight}
+          onFocus={scrollToBottom}
+          onInput={adjustTextAreaHeight}
         />
         <div style={{ margin: "7px 5px" }}>
           <Smile width={26} />
@@ -143,7 +168,11 @@ export let Conversation: FC = () => {
                   }
                 });
                 dispath(["setTextareaContent", ""]);
-                setTimeout(adjustHeight, 0);
+                setTimeout(() => {
+                  adjustTextAreaHeight();
+                  adjustDialogHeight();
+                  scrollToBottom();
+                }, 0);
               }
             }}
           >
@@ -163,7 +192,8 @@ type ChatProps = {
 let ChatSingle: FC<ChatProps> = ({ content, showTime }) => {
   let { timestamp, user, text } = content;
   let { chatState } = useChatContext();
-  let { en_zh, self } = chatState;
+  let { en_zh, self, contacts } = chatState;
+  user = contacts.get(user.id) || user;
   let isSelf = self.id === user.id;
   let time = formatTime(timestamp, en_zh);
 
@@ -222,7 +252,9 @@ let ChatSingle: FC<ChatProps> = ({ content, showTime }) => {
               padding: 10,
               borderRadius: "5px",
               fontSize: "17px",
-              whiteSpace: "break-spaces"
+              whiteSpace: "break-spaces",
+              maxWidth: "calc(100vw - 110px)",
+              overflow: "auto"
             }}
           >
             {text}

@@ -144,9 +144,22 @@ export let ChatRow: FC<ChatRowProps> = ({
       >
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div style={{ color: TEXT_BLACK, fontSize: "17px" }}>{title}</div>
-          <div style={{ color: TEXT_GRAY, fontSize: "12px" }}>{latest}</div>
+          <div
+            style={{
+              color: TEXT_GRAY,
+              fontSize: "12px",
+              lineHeight: "20px",
+              height: 20,
+              maxWidth: "calc(100vw - 160px)",
+              overflow: "hidden"
+            }}
+          >
+            {latest}
+          </div>
         </div>
-        <div style={{ color: TEXT_GRAY, fontSize: "12px" }}>{time}</div>
+        <div style={{ color: TEXT_GRAY, fontSize: "12px", minWidth: 45 }}>
+          {time}
+        </div>
       </div>
     </div>
   );

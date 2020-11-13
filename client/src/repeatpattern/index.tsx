@@ -13,7 +13,7 @@ export let RepeatPattern: FC = () => {
   });
 
   return (
-    <div style={{ marginTop: 40, zIndex: 0 }}>
+    <div style={{ marginTop: 20, zIndex: 0 }}>
       <RepeatProvider>
         <ImageTabs />
         <Preview />

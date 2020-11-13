@@ -196,7 +196,7 @@ export let ChatProvider: FC = props => {
       }
     },
     {
-      status: "contacts",
+      status: "me",
       lang: "en",
       wsConn: null,
       wsJsonSender: null,
