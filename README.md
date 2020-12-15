@@ -4,7 +4,7 @@
 
 Add a play button and text to an image. Try it [here](http://207.148.93.73/#play-button).
 
-![alt text](docs/images/play-button-demo.JPG)
+![alt text](docs/images/play-button-demo.jpg)
 
 ## Repeat pattern design
 
