@@ -3,5 +3,4 @@
 CompileDaemon \
   -build="go build ./cmd/draw/main.go" \
   -command="./main" \
-  -color=true \
-  /
+  -color=true
