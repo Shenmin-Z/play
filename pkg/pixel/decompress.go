@@ -3,6 +3,9 @@ package pixel
 import (
 	"bytes"
 	"encoding/binary"
+	"io/ioutil"
+	"log"
+	"os"
 )
 
 func fromPixelFrame(realWidth int, realHeight int, frame PixelFrame) BitMap {
@@ -27,4 +30,34 @@ func fromPixelFrame(realWidth int, realHeight int, frame PixelFrame) BitMap {
 		row = row + 1
 	}
 	return bitMap
+}
+
+func Decompress(binaryFilePath string) {
+	bin, err := ioutil.ReadFile(binaryFilePath)
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(2)
+	}
+
+	meta := PixelMeta{
+		binary.LittleEndian.Uint16(bin[0:]),
+		binary.LittleEndian.Uint16(bin[2:]),
+		binary.LittleEndian.Uint16(bin[4:]),
+		binary.LittleEndian.Uint16(bin[6:]),
+		binary.LittleEndian.Uint16(bin[8:]),
+	}
+	data := bin[10:]
+
+	frames := make([]BitMap, 0)
+	for i := 0; i < len(data); {
+		frameLen := int(binary.LittleEndian.Uint32(data[i : i+4]))
+		frames = append(frames, fromPixelFrame(
+			int(meta.realWidth),
+			int(meta.realHeight),
+			data[i+4:i+4+frameLen]),
+		)
+		i = i + 4 + frameLen
+	}
+
+	play(meta, frames)
 }

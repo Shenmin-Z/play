@@ -15,8 +15,15 @@ func main() {
 	height := flag.Int("h", 100, "height")
 	fps := flag.Int("f", 5, "frame rate")
 
+	binaryFilePath := flag.String("d", "", "path to binary file to be decompressed")
+
 	flag.Parse()
 	imgFiles := flag.Args()
+
+	if *binaryFilePath != "" {
+		pixel.Decompress(*binaryFilePath)
+		return
+	}
 
 	if len(imgFiles) == 0 {
 		log.Println("Must supply images.")
@@ -30,9 +37,9 @@ func main() {
 			log.Fatal(err)
 			os.Exit(2)
 		}
-		defer f.Close()
 
 		img, _, err := image.Decode(f)
+		f.Close()
 		if err != nil {
 			log.Fatal(err)
 			os.Exit(2)
