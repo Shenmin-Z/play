@@ -6,12 +6,11 @@ import (
 )
 
 const (
-	white       = "\u001b[47;1m"
-	black       = "\u001b[40;1m"
-	reset       = "\u001b[0m"
-	clearScreen = "\u001b[2J"
-	begenning   = "\u001b[0;0H"
-	nextLine    = "\u001b[1E"
+	white     = "\u001b[47;1m"
+	black     = "\u001b[40;1m"
+	reset     = "\u001b[0m"
+	begenning = "\u001b[0;0H"
+	nextLine  = "\u001b[1E"
 )
 
 func play(meta PixelMeta, frames []BitMap) {
@@ -24,7 +23,7 @@ func play(meta PixelMeta, frames []BitMap) {
 		select {
 		case <-ticker.C:
 			if i < len(frames) {
-				fmt.Printf("%s%s%s", clearScreen, begenning, reset)
+				fmt.Printf("%s%s", begenning, reset)
 				output := renderFrame(frames[i])
 				fmt.Print(output)
 				i++
@@ -52,11 +51,12 @@ func renderFrame(frame BitMap) string {
 					text += white
 				}
 			}
-			text += " "
+			text += "  "
 			prev = i
 		}
 		if lNum < len(frame)-1 {
-			text += nextLine
+			//text += nextLine
+			text += "\n"
 		}
 		result += text
 	}
