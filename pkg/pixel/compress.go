@@ -68,27 +68,24 @@ func toPixelFrame(input BitMap) PixelFrame {
 	return byteBuf.Bytes()
 }
 
-func ToBinary(imgs []image.Image, w int, h int, fps int, out string) {
-	var data PixelData
+func Compress(imgs []image.Image, w int, h int, fps int, out string) {
+	buf := make([][]byte, len(imgs))
 	var realWidth int
 	var realHeight int
 
-	for _, img := range imgs {
-		resized := imaging.Fit(img, w, h, imaging.NearestNeighbor)
-		gImg := gray(resized)
+	count := make(chan struct{}, len(imgs))
 
-		if realWidth == 0 {
-			realWidth = gImg.Rect.Dx()
-			realHeight = gImg.Rect.Dy()
-		}
+	for i, img := range imgs {
+		go compressFrame(img, w, h, &realWidth, &realHeight, i, buf, count)
+	}
 
-		mono := mono(gImg, 240)
-		frame := toPixelFrame(mono)
+	for i := 0; i < len(imgs); i++ {
+		<-count
+	}
 
-		byteBuf := new(bytes.Buffer)
-		binary.Write(byteBuf, binary.LittleEndian, uint32(len(frame)))
-		data = append(data, byteBuf.Bytes()...)
-		data = append(data, frame...)
+	bf := new(bytes.Buffer)
+	for _, i := range buf {
+		bf.Write(i)
 	}
 
 	meta := PixelMeta{
@@ -110,8 +107,38 @@ func ToBinary(imgs []image.Image, w int, h int, fps int, out string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	_, err = outBinaryFile.Write(data)
+	_, err = outBinaryFile.Write(bf.Bytes())
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func compressFrame(
+	img image.Image,
+	w int,
+	h int,
+	realWidth *int,
+	realHeight *int,
+	index int,
+	data [][]byte,
+	count chan struct{},
+) {
+	bf := new(bytes.Buffer)
+	resized := imaging.Fit(img, w, h, imaging.NearestNeighbor)
+	gImg := gray(resized)
+
+	if *realWidth == 0 {
+		*realWidth = gImg.Rect.Dx()
+		*realHeight = gImg.Rect.Dy()
+	}
+
+	mono := mono(gImg, 240)
+	frame := toPixelFrame(mono)
+
+	binary.Write(bf, binary.LittleEndian, uint32(len(frame)))
+	bf.Write(frame)
+
+	data[index] = bf.Bytes()
+
+	count <- struct{}{}
 }

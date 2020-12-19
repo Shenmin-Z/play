@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"image"
 	"log"
 	"os"
 
@@ -30,23 +29,7 @@ func main() {
 		os.Exit(2)
 	}
 
-	var imgs []image.Image
-	for _, imgFile := range imgFiles {
-		f, err := os.Open(imgFile)
-		if err != nil {
-			log.Fatal(err)
-			os.Exit(2)
-		}
+	imgs := pixel.DecodeImages(imgFiles)
 
-		img, _, err := image.Decode(f)
-		f.Close()
-		if err != nil {
-			log.Fatal(err)
-			os.Exit(2)
-		}
-
-		imgs = append(imgs, img)
-	}
-
-	pixel.ToBinary(imgs, *width, *height, *fps, *outFile)
+	pixel.Compress(imgs, *width, *height, *fps, *outFile)
 }

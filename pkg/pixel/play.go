@@ -14,6 +14,7 @@ const (
 	black       = "\u001b[40;1m"
 	reset       = "\u001b[0m"
 	begenning   = "\u001b[0;0H"
+	showCursor  = "\u001b[?25h"
 	hiedeCursor = "\u001b[?25l"
 )
 
@@ -31,7 +32,7 @@ func play(meta PixelMeta, frames []BitMap) {
 	for {
 		select {
 		case <-c:
-			fmt.Print(reset)
+			fmt.Print(showCursor)
 			os.Exit(0)
 		case <-ticker.C:
 			if i < len(frames) {
@@ -44,7 +45,7 @@ func play(meta PixelMeta, frames []BitMap) {
 			}
 		case <-quit:
 			ticker.Stop()
-			fmt.Print(reset)
+			fmt.Print(showCursor)
 			return
 		}
 	}
