@@ -7,41 +7,55 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
+	"sync"
 )
+
+const concurrentLimit = 20
+
+type decodeTask struct {
+	index   int
+	imgFile string
+}
 
 func DecodeImages(imgFiles []string) []image.Image {
 	sortFiles(imgFiles)
 	imgs := make([]image.Image, len(imgFiles))
-	count := make(chan struct{}, len(imgFiles))
-	// max 10 concurrent since can't have too many open files
-	guard := make(chan struct{}, 10)
+	wg := sync.WaitGroup{}
+	wg.Add(len(imgFiles))
+	ch := make(chan decodeTask)
+
+	for i := 0; i < concurrentLimit; i++ {
+		go func() {
+			for {
+				task, ok := <-ch
+				if !ok {
+					return
+				}
+				f, err := os.Open(task.imgFile)
+				if err != nil {
+					log.Fatal(err)
+					os.Exit(2)
+				}
+
+				img, _, err := image.Decode(f)
+				f.Close()
+				if err != nil {
+					log.Fatal(err)
+					os.Exit(2)
+				}
+
+				imgs[task.index] = img
+				wg.Done()
+			}
+		}()
+	}
 
 	for i, imgFile := range imgFiles {
-		guard <- struct{}{}
-		go func(i int, imgFile string) {
-			f, err := os.Open(imgFile)
-			if err != nil {
-				log.Fatal(err)
-				os.Exit(2)
-			}
-
-			img, _, err := image.Decode(f)
-			f.Close()
-			if err != nil {
-				log.Fatal(err)
-				os.Exit(2)
-			}
-
-			imgs[i] = img
-			count <- struct{}{}
-			<-guard
-		}(i, imgFile)
+		ch <- decodeTask{i, imgFile}
 	}
+	close(ch)
 
-	for i := 0; i < len(imgFiles); i++ {
-		<-count
-	}
-
+	wg.Wait()
 	return imgs
 }
 

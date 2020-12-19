@@ -6,6 +6,7 @@ import (
 	"image"
 	"log"
 	"os"
+	"sync"
 
 	"github.com/disintegration/imaging"
 )
@@ -72,16 +73,13 @@ func Compress(imgs []image.Image, w int, h int, fps int, out string) {
 	buf := make([][]byte, len(imgs))
 	var realWidth int
 	var realHeight int
+	var wg sync.WaitGroup
 
-	count := make(chan struct{}, len(imgs))
-
+	wg.Add(len(imgs))
 	for i, img := range imgs {
-		go compressFrame(img, w, h, &realWidth, &realHeight, i, buf, count)
+		go compressFrame(img, w, h, &realWidth, &realHeight, i, buf, &wg)
 	}
-
-	for i := 0; i < len(imgs); i++ {
-		<-count
-	}
+	wg.Wait()
 
 	bf := new(bytes.Buffer)
 	for _, i := range buf {
@@ -121,7 +119,7 @@ func compressFrame(
 	realHeight *int,
 	index int,
 	data [][]byte,
-	count chan struct{},
+	wg *sync.WaitGroup,
 ) {
 	bf := new(bytes.Buffer)
 	resized := imaging.Fit(img, w, h, imaging.NearestNeighbor)
@@ -140,5 +138,5 @@ func compressFrame(
 
 	data[index] = bf.Bytes()
 
-	count <- struct{}{}
+	wg.Done()
 }
