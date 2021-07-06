@@ -20,7 +20,7 @@ A simple chat app. Try it [here](http://207.148.93.73/#chat).
 
 ## Pixel
 
-Play video in terminal!
+Play video in terminal! [video](https://youtu.be/k53wc5ggOYI) [视频](https://www.bilibili.com/video/BV1eK4y1L7HK/)
 
 ![pixel-demo](docs/images/pixel.gif)
 
